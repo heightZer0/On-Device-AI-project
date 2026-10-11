@@ -1,0 +1,30 @@
+# config/posture.yaml — 자세 분석 설정 (명세 C5: 설정 키는 이 파일 한 곳에서만 정의)
+# ※ 모든 값은 임시 placeholder 이다. 0단계 실험(P7 E1~E6)으로 확정하기 전까지
+#    확정값으로 문서화/발표하지 말 것.
+
+# ---- 명세 C5 키 ----
+T_vis: 0.5                 # TODO(실험) 귀·어깨 최소 visibility
+N_low_vis: 5               # TODO(실험) 신뢰도 저하 판정 연속 프레임 수
+frame_margin: 0.05         # TODO(실험) 화면 가장자리 마진 (이미지 크기 대비 비율)
+T_forward: 0.10            # TODO(실험) 전방 임계값 (ΔH 단위)
+T_hold_sec: 5.0            # TODO(실험) 주의 판정 지속 시간
+T_reset_sec: 3.0           # TODO(실험) 측정 불가가 이 시간을 넘으면 주의 타이머 초기화
+K_recover: 5               # TODO(실험) 판정 재개에 필요한 연속 안정 프레임 수
+alert_interval_sec: 30.0   # TODO(실험) 주의 재알림 최소 간격
+calib_duration_sec: 7.0    # 명세 초기 제안 5~10초
+
+# ---- 명세에 없어 이 구현에서 임시로 둔 키 (가정 — 팀 확인 필요) ----
+T_release: 0.05                    # TODO(실험) 주의 '해제' 임계값(히스테리시스, 해제 조건은 명세상 TBD). null 이면 T_forward 와 같음. T_forward 이하여야 함
+l_ref_mode: C                      # L_ref 후보 A|B|C (0단계 E2에서 비교, 기본 C)
+smooth_window: 5                   # 이동 중앙값 창(프레임). 노이즈 완화 방식은 미확정
+max_dt_sec: 1.0                    # 프레임 간격이 이보다 길면 이 값으로 자름(카메라 끊김 시 타이머 폭주 방지)
+calib_min_frames: 10               # 캘리브레이션 최소 수집 프레임
+calib_min_stable_ratio: 0.5        # TODO(실험) 안정 프레임 최소 비율
+calib_max_spread: null             # TODO(실험 E5) H 변동 폭(IQR) 상한. null=거부하지 않고 로그만 (명세: 기준 TBD)
+unavailable_prolonged_sec: 10.0    # TODO(실험) unavailable_prolonged 이벤트까지 걸리는 시간
+recalib_suggest_count: 3           # TODO(실험) 측정 불가(T_reset 초과)가 이 횟수 반복되면 재캘리브레이션 안내
+recalib_window_sec: 300.0          # TODO(실험) 위 횟수를 세는 기간
+calibration_path: data/calibration.json
+camera_index: 1                    # 노트북 내장 캠이 0이면 외부 웹캠은 보통 1
+camera_retry_sec: 2.0              # 카메라 끊김 후 재연결 시도 간격
+model_complexity: 1                # MediaPipe 0 lite / 1 full / 2 heavy
