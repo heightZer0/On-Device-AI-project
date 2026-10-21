@@ -1,0 +1,39 @@
+# ── Python ──
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+*.whl
+
+# ── Virtual Environments ──
+venv/
+.venv/
+env/
+.env/
+
+# ── ML Models & Data (regenerated on first run) ──
+data/models/*.pkl
+data/models/*.task
+data/sessions/*.json
+
+# ── Generated Files ──
+alert.wav
+
+# ── Testing ──
+.pytest_cache/
+
+# ── IDE / Editor ──
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── OS ──
+desktop.ini

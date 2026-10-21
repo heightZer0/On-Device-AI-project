@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pose-x-pro"
+version = "1.0.0"
+description = "AI-Powered Posture Monitoring System using MediaPipe and scikit-learn"
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.10"
+authors = [
+    {name = "Kuldeep"},
+]
+keywords = ["posture", "mediapipe", "machine-learning", "opencv", "health", "ergonomics"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Multimedia :: Video",
+]
+dependencies = [
+    "opencv-python>=4.5.0",
+    "mediapipe>=0.10.30",
+    "numpy>=1.19.0",
+    "pygame>=2.0.0",
+    "scikit-learn>=1.3.0",
+    "joblib>=1.3.0",
+    "scipy>=1.10.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "ruff>=0.4.0",
+]
+
+[project.scripts]
+pose-x-pro = "posture_monitor:main"
+
+[project.urls]
+Homepage = "https://github.com/YOUR_USERNAME/PostureSense"
+Repository = "https://github.com/YOUR_USERNAME/PostureSense"
+Issues = "https://github.com/YOUR_USERNAME/PostureSense/issues"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
