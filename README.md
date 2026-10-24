@@ -80,6 +80,4 @@ app/src/main/java/com/example/bajahoe/
 mock_server/            PC용 모의 기기 서버
 PROTOCOL.md             기기 ↔ 앱 통신 규격
 ```
-=======
-# On-Device-AI-project
->>>>>>> refs/rewritten/app
+
