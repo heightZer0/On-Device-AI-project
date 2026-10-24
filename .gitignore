@@ -1,0 +1,33 @@
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Android Studio 개인 설정과 캐시
+/.idea/
+.kotlin/
+
+# 빌드 결과물과 서명 키
+*.apk
+*.aab
+*.jks
+*.keystore
+
+# 모의 서버 (Python)
+__pycache__/
+*.pyc
+.venv/
+
+# Windows
+Thumbs.db
