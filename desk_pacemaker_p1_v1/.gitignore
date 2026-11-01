@@ -1,0 +1,10 @@
+# 개인 기준값 / 실험 로그 / 환경 — 공유·커밋하지 않는다 (개인정보·좌표 원본 저장 금지 원칙)
+data/*
+!data/.gitkeep
+h_log_*.csv
+*exp*.csv
+calibration.json
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc

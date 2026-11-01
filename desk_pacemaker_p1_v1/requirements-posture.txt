@@ -1,0 +1,11 @@
+
+pytest
+
+mediapipe==0.10.21
+opencv-python
+numpy==1.26.4
+pyyaml
+pandas
+# MultiPosture 모델(joblib)은 scikit-learn 1.6.1로 저장되어 있어 같은 버전 권장
+joblib==1.6.0
+scikit-learn==1.6.1
