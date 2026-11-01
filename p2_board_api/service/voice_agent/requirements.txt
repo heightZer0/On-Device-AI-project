@@ -1,0 +1,11 @@
+sherpa-onnx
+sounddevice
+numpy
+requests
+pyyaml
+fastapi
+uvicorn
+psutil
+# 테스트
+pytest
+httpx

@@ -1,0 +1,30 @@
+# P3 voice_agent 설정 (경로·스레드·주소·수치는 이 파일에서만 정의)
+# 프로젝트 루트에서 실행한다고 가정한 상대경로. 모든 수치는 PLACEHOLDER (TODO(실험)).
+paths:
+  vad: ai/vad/silero_vad.onnx
+  stt_model: ai/stt/model.int8.onnx
+  stt_tokens: ai/stt/tokens.txt
+  tts_model: ai/tts/model.onnx
+  tts_tokens: ai/tts/tokens.txt
+  tts_data_dir: ai/tts/espeak-ng-data
+
+audio: {input_device: null, output_device: null, sample_rate: 16000}
+threads: {stt: 4, tts: 2}
+
+vad: {threshold: 0.5, min_silence_sec: 0.5, min_speech_sec: 0.25, max_speech_sec: 10}  # PLACEHOLDER TODO(실험)
+stt: {language: ko, use_itn: true}
+tts: {sid: 0, speed: 1.0, volume: 1.0, max_chars_per_chunk: 40}                        # PLACEHOLDER
+echo_guard: {post_play_mute_ms: 400}                                                   # PLACEHOLDER TODO(실험)
+speaker_queue: {max_len: 8}                                                            # PLACEHOLDER (가정)
+
+speak_server: {host: 127.0.0.1, port: 8081}
+p2:
+  command_url: http://127.0.0.1:8000/api/v1/command
+  token_env: BAJAHOE_DEVICE_TOKEN
+  timeout_sec: 12
+
+fallback_phrases:        # P2가 응답하지 못할 때만 사용
+  p2_down: "지금은 음성 명령을 처리할 수 없어요. 앱 버튼을 사용해 주세요."
+  stt_empty: null        # null이면 무시
+
+metrics: {enabled: true, csv_path: logs/voice_latency.csv}   # 문구·STT 텍스트는 기록하지 않음

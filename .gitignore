@@ -1,0 +1,52 @@
+# Python environments and generated caches
+**/.venv/
+**/venv/
+**/__pycache__/
+*.py[cod]
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+**/.coverage
+**/htmlcov/
+
+# Local credentials and machine-specific config
+.env
+.env.*
+!.env.example
+*.local.yaml
+*.local.yml
+
+# Runtime session/calibration/settings data (may contain personal data)
+p2_board_api/data/store/*
+!p2_board_api/data/store/.gitkeep
+desk_pacemaker_p1_v1/data/*
+!desk_pacemaker_p1_v1/data/.gitkeep
+
+# Model files; obtain separately and keep paths in config files
+P3_TTS/ai/
+p2_board_api/service/voice_agent/ai/
+
+# Local metrics and experiment artifacts
+**/logs/
+*.log
+desk_pacemaker_p1_v1/h_log_*.csv
+desk_pacemaker_p1_v1/*exp*.csv
+
+# Android/Gradle build output and local IDE settings
+**/.gradle/
+**/.idea/
+**/.kotlin/
+**/build/
+**/.externalNativeBuild/
+**/.cxx/
+**/local.properties
+*.apk
+*.aab
+*.jks
+*.keystore
+
+# General OS/editor files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo

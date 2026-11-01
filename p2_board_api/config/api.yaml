@@ -1,0 +1,21 @@
+# 주소·포트는 여기서만 정의한다. (null/PLACEHOLDER는 실험·팀 확정 후 교체)
+server: {host: 0.0.0.0, port: 8000}
+speak_url: http://127.0.0.1:8081
+llm_url: http://127.0.0.1:8080/v1/chat/completions # OpenAI-compatible P4 runtime
+llm_model: bajahoe            # 모델 교체 시 runtime이 기대하는 model id로 변경
+llm_timeout_sec: 10
+tts_wait_timeout_sec: 10
+auth: {enabled: true, token_env: BAJAHOE_DEVICE_TOKEN}
+rate_limit: {per_client_per_sec: null}   # TODO(실험) null이면 429 비활성
+request_id_cache: {ttl_sec: 300, max_items: 1000}   # PLACEHOLDER
+poll_hint_sec: 1
+session: {tick_sec: 1, checkpoint_sec: 30}
+storage: {json_path: data/store} # P0 D-08: settings.json/session JSON 파일 저장 디렉터리
+mdns: {enabled: true, service_type: _bajahoe._tcp, name: bajahoe}   # D-05 제안
+preview_stream_enabled: false     # D-06. true는 debug_mode에서만
+conversation_ttl_sec: 10          # PLACEHOLDER
+break_alarm_replace: true         # TODO(CP0) 기존 휴식 알림 교체 정책 미확정
+time_crosscheck_mode: confirm     # P4 D-15: off | confirm | override
+health_refresh_sec: 5
+phrases_path: config/phrases.yaml
+part_words_path: command/schema/part_words.yaml

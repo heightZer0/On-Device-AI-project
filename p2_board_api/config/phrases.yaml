@@ -1,0 +1,14 @@
+events:
+  attention_started: "머리가 기준보다 앞쪽에 있는 상태가 이어지고 있어요. 턱을 살짝 당겨 볼까요?"
+  recovered: "좋아요. 기준 자세에 가까워졌어요."
+  unavailable_prolonged: "지금은 자세를 확인하기 어려워요. 카메라에 머리와 어깨가 보이는지 확인해 주세요."
+  recalibration_suggested: null     # TODO(기획) 문구 미확정 — null이면 앱 표시만, 음성 없음
+errors:
+  llm_unavailable: "지금은 음성 명령을 처리할 수 없어요. 앱 버튼을 사용해 주세요."
+  llm_timeout: "응답이 지연되고 있어요. 다시 말씀해 주세요."
+  command_failed: "명령을 실행하지 못했어요. 잠시 후 다시 시도해 주세요."   # PLACEHOLDER(기획 확정 필요)
+prompts:
+  ask_part: "어느 부위 스트레칭을 알려 드릴까요?"                           # P4 clarify 문구와 동일하게 유지
+  break_cancelled: "알림 설정을 취소했어요."                                 # PLACEHOLDER
+alarms:
+  break: "쉬어 갈 시간이에요. 잠깐 몸을 풀어 볼까요?"                        # PLACEHOLDER(기획 확정 필요)
