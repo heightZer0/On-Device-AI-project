@@ -11,8 +11,8 @@
     python mock_server.py --port 8080 --no-mdns
 
 수동 모드 키 입력 후 Enter:
-    g = 바른 자세, b = 고개 숙임, c = 너무 가까움, t = 어깨 기울어짐, n = 자리 비움,
-    a = 자동 시나리오로 돌아가기, f = 다음 자세설정 실패시키기, q = 종료
+    g = 바른 자세, f = 거북목, d = 고개 숙임, s = 등 굽음, c = 너무 가까움, n = 자리 비움,
+    a = 자동 시나리오로 돌아가기, x = 다음 자세설정 실패시키기, q = 종료
 
 휴대폰과 PC가 같은 Wi-Fi에 있어야 한다. 에뮬레이터에서는 IP에 10.0.2.2 를 입력한다.
 """
@@ -40,17 +40,17 @@ DEVICE_INFO = {
     "device_id": "mock-0001",
     "name": "바자회 모의 기기",
     "version": "1.0.0-mock",
-    "camera": "front",
+    "camera": "half_side",
 }
 
 SCENARIO = [  # (지속 초, state, issues)
     (15, "good", []),
-    (10, "bad", ["head_down"]),
+    (10, "bad", ["forward_head"]),
     (8, "good", []),
-    (8, "bad", ["too_close"]),
+    (8, "bad", ["head_down"]),
     (6, "no_person", []),
     (10, "good", []),
-    (9, "bad", ["shoulder_tilt"]),
+    (9, "bad", ["slouch"]),
 ]
 
 
@@ -95,9 +95,10 @@ class Device:
             "state": state,
             "score": max(0, min(100, score)),
             "issues": issues,
-            "metrics": {"shoulder_tilt_deg": 9.0 if "shoulder_tilt" in issues else 1.2,
-                        "head_drop": 0.3 if "head_down" in issues else 0.02,
-                        "distance_ratio": 1.3 if "too_close" in issues else 1.0},
+            "metrics": {"neck_angle_deg": 31.0 if "forward_head" in issues else 18.0,
+                        "head_pitch_deg": 24.0 if "head_down" in issues else 6.0,
+                        "ear_shoulder_ratio": 0.74 if "slouch" in issues else 0.98,
+                        "size_ratio": 1.28 if "too_close" in issues else 1.0},
         }
 
 
@@ -201,8 +202,8 @@ async def ws_handler(request: web.Request) -> web.WebSocketResponse:
 
 def keyboard_loop(loop: asyncio.AbstractEventLoop) -> None:
     keys = {
-        "g": ("good", []), "b": ("bad", ["head_down"]), "c": ("bad", ["too_close"]),
-        "t": ("bad", ["shoulder_tilt"]), "n": ("no_person", []),
+        "g": ("good", []), "f": ("bad", ["forward_head"]), "d": ("bad", ["head_down"]),
+        "s": ("bad", ["slouch"]), "c": ("bad", ["too_close"]), "n": ("no_person", []),
     }
     for line in sys.stdin:
         k = line.strip().lower()
@@ -212,7 +213,7 @@ def keyboard_loop(loop: asyncio.AbstractEventLoop) -> None:
         elif k == "a":
             device.manual = None
             print("[manual] auto scenario")
-        elif k == "f":
+        elif k == "x":
             device.fail_next_calibration = True
             print("[manual] next calibration will fail")
         elif k == "q":
@@ -269,7 +270,7 @@ def main() -> None:
     mdns = None if args.no_mdns else start_mdns(args.port)
     print(f"바자회 모의 서버: http://{local_ip()}:{args.port}  (에뮬레이터는 10.0.2.2)")
     if args.manual:
-        print("키 입력: g 바른자세 / b 고개숙임 / c 너무가까움 / t 어깨기울어짐 / n 자리비움 / a 자동 / f 설정실패 / q 종료")
+        print("키 입력: g 바른자세 / f 거북목 / d 고개숙임 / s 등굽음 / c 너무가까움 / n 자리비움 / a 자동 / x 설정실패 / q 종료")
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)

@@ -108,10 +108,10 @@ fun ResultScreen(vm: AppViewModel) {
 }
 
 private fun tipFor(issue: PostureIssue): String = when (issue) {
+    PostureIssue.FORWARD_HEAD -> "턱을 살짝 당겨 귀가 어깨 바로 위에 오도록 해 보세요."
     PostureIssue.HEAD_DOWN -> "책이나 화면을 눈높이 가까이 올리면 고개를 덜 숙이게 돼요."
+    PostureIssue.SLOUCH -> "의자 깊숙이 앉아 등받이에 허리를 붙이고 가슴을 펴 보세요."
     PostureIssue.TOO_CLOSE -> "화면과 눈 사이는 팔 길이 정도로 두는 것이 좋아요."
-    PostureIssue.SHOULDER_TILT -> "한쪽 팔꿈치로 기대지 말고 양 어깨 높이를 맞춰 보세요."
-    PostureIssue.LEANING -> "의자 깊숙이 앉아 등받이에 허리를 붙여 보세요."
 }
 
 @Composable

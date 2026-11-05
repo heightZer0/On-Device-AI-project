@@ -31,3 +31,6 @@ __pycache__/
 
 # Windows
 Thumbs.db
+
+# Claude 데스크톱 앱이 저장한 문서 파일
+Claude outputs/

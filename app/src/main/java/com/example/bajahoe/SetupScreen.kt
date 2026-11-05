@@ -49,6 +49,8 @@ fun SetupScreen(vm: AppViewModel, initial: Boolean) {
         if (client != null && !client.info.isDemo && connected) {
             MjpegPreview(
                 url = client.info.previewUrl,
+                token = client.info.token,
+                snapshot = client.info.isP2,
                 modifier = Modifier.fillMaxSize(),
                 placeholder = { SilhouetteLayer() },
             )
@@ -135,11 +137,17 @@ fun SetupScreen(vm: AppViewModel, initial: Boolean) {
             text = when {
                 !connected -> "기기에 연결하는 중이에요…"
                 ready -> "좋아요! 이 자세를 기준으로 저장할게요"
-                else -> "얼굴과 어깨가 가이드 안에 오도록 맞춰주세요"
+                detect != null && detect.progress in 0f..0.999f && detect.face && detect.shoulders ->
+                    "바른 자세 그대로 잠시 움직이지 마세요… ${(detect.progress * 100).toInt()}%"
+                else -> "카메라를 비스듬히 두고 얼굴 옆선과 어깨가 가이드 안에 오도록 맞춰주세요"
             },
             fontSize = 13.sp,
             color = Color.White.copy(alpha = 0.85f),
-            modifier = Modifier.align(Alignment.CenterHorizontally),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            lineHeight = 19.sp,
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .padding(horizontal = 24.dp),
         )
 
         vm.calibrationError?.let {

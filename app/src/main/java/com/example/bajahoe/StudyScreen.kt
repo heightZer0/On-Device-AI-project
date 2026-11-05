@@ -81,15 +81,30 @@ fun StudyScreen(vm: AppViewModel) {
         label = "accent",
     )
 
+    val client = vm.client
     CameraBackdrop {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            PersonSilhouette(
-                Modifier
-                    .padding(bottom = 120.dp)
-                    .width(260.dp)
-                    .height(380.dp)
-                    .alpha(if (s.state == PostureState.NO_PERSON) 0.25f else 1f)
+        // 기기 카메라에 비친 내 모습. 데모이거나 영상이 없으면 실루엣을 보여준다
+        val silhouette: @Composable () -> Unit = {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                PersonSilhouette(
+                    Modifier
+                        .padding(bottom = 120.dp)
+                        .width(260.dp)
+                        .height(380.dp)
+                        .alpha(if (s.state == PostureState.NO_PERSON) 0.25f else 1f)
+                )
+            }
+        }
+        if (client != null && !client.info.isDemo && !disconnected) {
+            MjpegPreview(
+                url = client.info.previewUrl,
+                token = client.info.token,
+                snapshot = client.info.isP2,
+                modifier = Modifier.fillMaxSize(),
+                placeholder = silhouette,
             )
+        } else {
+            silhouette()
         }
         if (s.alert) {
             Box(Modifier.fillMaxSize().background(Bj.Danger.copy(alpha = 0.18f)))
