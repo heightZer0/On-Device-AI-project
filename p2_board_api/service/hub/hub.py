@@ -85,6 +85,24 @@ class Hub:
     def calibrated(self):
         return self.engine.get_calibration() is not None
 
+    def ensure_camera_ready(self):
+        """Probe a lazily opened P1 camera when a start command needs it."""
+        probe = getattr(self.engine, "ensure_camera_ready", None)
+        if probe is None:
+            return (self._health or {}).get("camera") == "ready"
+        ready = bool(probe())
+        try:
+            camera = self.engine.get_health().get("camera", "error")
+        except Exception:
+            camera = "error"
+        with self.lock:
+            health = dict(self._health or {})
+            health["camera"] = camera
+            health["status"] = "ok" if camera == "ready" and not any(
+                value == "error" for value in (health.get("ai_modules") or {}).values()) else "degraded"
+            self._health = health
+        return ready
+
     def _control(self, message, **extra):
         s = self.session
         return {"system_state": self.state, "monitoring": _MONITORING[self.state],
@@ -99,11 +117,15 @@ class Hub:
             if self.state == MON:
                 return self._control("이미 모니터링 중이에요.")
             if self.state == PAUSED:
+                if not self.ensure_camera_ready():
+                    raise ApiError(503, "CAMERA_NOT_READY", "카메라를 사용할 수 있을 때 다시 시도해 주세요.")
                 self.engine.resume()
                 self.state = MON
                 return self._control("모니터링을 다시 시작했어요.")
             if not self.calibrated():
                 raise ApiError(409, "CALIBRATION_REQUIRED", "기준 자세를 먼저 설정해 주세요.")
+            if not self.ensure_camera_ready():
+                raise ApiError(503, "CAMERA_NOT_READY", "카메라를 사용할 수 있을 때 다시 시도해 주세요.")
             self.engine.start()
             now = iso(self.clock())
             self.session = SessionTracker(session_id="session_" + uuid.uuid4().hex[:12], started_at=now)
@@ -196,14 +218,18 @@ class Hub:
         with self.lock:
             if not self.session:
                 return
+            should_read = self.state == MON
+        st = None
+        if should_read:
+            try:
+                st = self.engine.get_state().get("state")
+            except Exception:
+                st = "unavailable"
+        with self.lock:
+            if not self.session:
+                return
             running = self.state == MON
-            st = None
-            if running:
-                try:
-                    st = self.engine.get_state().get("state")
-                except Exception:
-                    st = "unavailable"
-            self.session.add(dt_ms, st, running)
+            self.session.add(dt_ms, st if running else None, running)
             self._since_ckpt_ms += dt_ms
             if self._since_ckpt_ms >= self.cfg["session"]["checkpoint_sec"] * 1000:
                 self._since_ckpt_ms = 0
@@ -308,11 +334,14 @@ class Hub:
             return source.last_frame.copy()
 
     def status(self):
+        # P1 reads happen before hub.lock so status polling never nests hub -> engine locks.
+        posture = self.get_posture()
+        calibrated = self.calibrated()
         with self.lock:
             s = self.session
             return {"system_state": self.state, "monitoring": _MONITORING[self.state],
                     "camera": (self._health or {}).get("camera", "unavailable"),
-                    "calibrated": self.calibrated(), "posture": self.get_posture(),
+                    "calibrated": calibrated, "posture": posture,
                     "session": to_api(s.session_id, s.started_at, None, s.snapshot()) if s else None,
                     "notices": sorted(self.notices), "poll_hint_sec": self.cfg["poll_hint_sec"],
                     "updated_at": iso(self.clock())}
@@ -333,7 +362,9 @@ class Hub:
         mods = {"pose": eh.get("pose", "error"), "stt": sp.get("stt", "error"), "tts": sp.get("tts", "error"), "llm": llm}
         camera = eh.get("camera", "error")
         degraded = camera == "error" or "error" in mods.values()
-        self._health = {"status": "degraded" if degraded else "ok", "camera": camera, "ai_modules": mods}
+        health = {"status": "degraded" if degraded else "ok", "camera": camera, "ai_modules": mods}
+        with self.lock:
+            self._health = health
 
     def health(self):
         self.refresh_health()

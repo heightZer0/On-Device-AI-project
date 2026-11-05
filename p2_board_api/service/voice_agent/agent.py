@@ -14,6 +14,7 @@ import os
 import re
 import threading
 import time
+import uuid
 from typing import Optional
 
 import numpy as np
@@ -50,6 +51,7 @@ class VoiceAgent(threading.Thread):
         self._state = "off"
         self._mic_open = False
         self._csv_lock = threading.Lock()
+        self._conversation_id = uuid.uuid4().hex
 
     # ---- 외부 제어 ----
     def mic_state(self) -> str:
@@ -123,12 +125,12 @@ class VoiceAgent(threading.Thread):
     # ---- 발화 1건 처리 ----
     def _handle_segment(self, samples: np.ndarray) -> None:
         t_end = time.monotonic()
-        text = preprocess(self._stt.transcribe(samples))
+        text = self._stt.transcribe(samples) or ""
         samples = None  # noqa: F841  오디오 버퍼 즉시 폐기
         self.process_text(text, t_end, time.monotonic())
 
     def process_text(self, text: str, t_end: float, t_stt: float) -> None:
-        if not text:
+        if not preprocess(text):
             phrase = self._cfg["fallback_phrases"].get("stt_empty")
             if phrase:
                 self._speaker.enqueue(phrase, "reply")
@@ -165,7 +167,9 @@ class VoiceAgent(threading.Thread):
 
     def _call_p2(self, utterance: str) -> Optional[str]:
         p2 = self._cfg["p2"]
-        body = {"source": "voice", "utterance": utterance, "confidence": None}  # SenseVoice 신뢰도 없음 -> null
+        body = {"source": "voice", "utterance": utterance, "confidence": None,
+                "request_id": uuid.uuid4().hex,
+                "conversation_id": self._conversation_id}  # keep raw STT text for P2 context and duration parsing
         return self._post_command(p2["command_url"], body, p2["timeout_sec"])
 
     # ---- 측정(P7 공유): 텍스트·문구는 기록하지 않음 ----

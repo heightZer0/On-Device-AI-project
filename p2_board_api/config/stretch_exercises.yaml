@@ -1,0 +1,30 @@
+# Existing approved guide steps are stored as individually selectable actions.
+# IDs are stable so a conversation can avoid repeating a recently shown action.
+"0":
+  - id: whole_01
+    title: "어깨 힘 빼기"
+    steps: ["의자에 편히 앉아 어깨 힘을 빼 보세요."]
+  - id: whole_02
+    title: "상체 가볍게 풀기"
+    steps: ["목, 어깨, 허리 순서로 천천히 풀어 보세요."]
+"1":
+  - id: neck_01
+    title: "턱 당기기"
+    steps: ["턱을 살짝 당기고 5초 정도 유지해 보세요."]
+  - id: neck_02
+    title: "고개 천천히 돌리기"
+    steps: ["고개를 천천히 좌우로 돌려 보세요. 불편하면 멈춰 주세요."]
+"2":
+  - id: shoulder_01
+    title: "어깨 올렸다 내리기"
+    steps: ["어깨를 위로 으쓱했다가 천천히 내려 보세요."]
+  - id: shoulder_02
+    title: "어깨 돌리기"
+    steps: ["어깨를 뒤로 크게 돌려 보세요."]
+"3":
+  - id: back_01
+    title: "허리 곧게 펴기"
+    steps: ["등받이에서 등을 떼고 허리를 곧게 펴 보세요."]
+  - id: back_02
+    title: "상체 위로 뻗기"
+    steps: ["두 손을 깍지 끼고 위로 쭉 뻗어 보세요."]

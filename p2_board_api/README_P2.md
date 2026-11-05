@@ -32,14 +32,15 @@ BAJAHOE_DEVICE_TOKEN=<토큰> python -m service.api_server.main   # 실제 P1(po
 1. `/session/history`는 `{items,total,limit,next_cursor}`이며 세션 객체에는 기본 누적 필드와 화면용 파생 필드가 포함된다. 캘린더 응답은 `month, timezone, totals, days, sessions`다.
 2. 인증 헤더는 `Authorization: Bearer <device_token>`로 가정(D-04). 페어링 API는 만들지 않았다(`pairing_enabled=false` 기본이라 생략).
 3. `/command` 검증 실패는 V6 오류 코드와 HTTP status를 사용한다. 재질문은 성공 응답 `result.awaiting`으로 `body_part|intent|time`을 반환한다.
-4. P4 인터페이스: `command.process_p2(raw, utterance, services)`. 명령은 V6 16개 허용 목록과 전체 일치해야 하며 알림 명령은 `minutes="N"`만 받는다. 실제 시간은 STT 원문에서 백엔드가 파싱한다.
-5. 재질문 후속 처리: part 재질문은 모호/무관 발화에 1회 재질문 후 해제하고 일반(LLM) 흐름으로 넘긴다. `part_words.yaml` 단어 목록은 초안.
-6. 재질문 상태는 프로세스 메모리에 세션별 저장하며 30초 TTL, 한 번 재질문 후 실패하면 `CLARIFICATION_TIMEOUT`으로 끝낸다. 오디오 데이터는 저장하지 않는다.
-7. AI 요청 감사 로그는 `ai_log_enabled: true`일 때만 `ai_log_path` JSONL에 기록한다. 기본값은 꺼짐이며 이 모드는 STT 원문과 LLM 출력을 기록한다.
-7. 엔진 `confirm_calibration()`이 `{"saved": false}`를 반환하면 재측정(상태 CALIBRATING 유지)으로 해석. 엔진의 `cancel_calibration`, `set_debug_label`은 선택 기능.
-8. `posture_sensitivity→T_forward` 매핑은 실험으로 정해야 하므로 현재 판정에는 적용하지 않는다.
-9. 캐시되는 `request_id` 응답은 **성공 응답만**. 휴식 알림 교체 정책은 `break_alarm_replace`(기본 true), 알림 문구·`command_failed`·`break_cancelled` 문구는 PLACEHOLDER(기획 확정 필요).
-10. 비정상 종료 세션은 폐기하지 않고 마지막 체크포인트 시각으로 마감한다(⚑정책 TBD).
-11. **미구현/하드웨어 필요**: RKLLM native binding은 보드와 일치하는 헤더·런타임을 받은 뒤 작성해야 한다. OpenAI 호환 endpoint 어댑터는 설정 가능. `/pairing/*`는 미구현. 로컬 미리보기는 디버그 설정에서만 사용할 수 있다.
+4. P4 인터페이스: `command.process_p2(raw, utterance, services, conversation=...)`. 명령은 V6 16개 허용 목록과 전체 일치해야 하며 알림 명령은 `minutes="N"`만 받는다. 실제 시간은 STT 원문에서 백엔드가 파싱한다.
+5. `/command`의 선택 필드 `conversation_id`가 대화 캐시 키다. 생략하면 단일 기기 MVP용 `default` 대화를 사용하며, 측정 `session_id`와는 분리한다. 모바일 앱은 여러 대화/사용자를 지원할 때 대화마다 안정적인 ID를 보내야 한다.
+6. 재질문 상태는 메모리에 30초, 직전 스트레칭 부위·동작은 5분 보관한다. 재질문은 한 번만 되묻고, 새 명령과 취소 발화가 우선한다. 스트레칭 응답에는 `exercise_id`가 포함된다.
+7. 메모리 캐시는 P2 단일 프로세스·단일 워커 범위다. 여러 워커/서버로 배포하면 Redis 등 공유 저장소로 옮겨야 한다. 오디오 원본은 저장하지 않는다.
+8. AI 요청 감사 로그는 `ai_log_enabled: true`일 때만 JSONL에 기록한다. 기본값은 꺼짐이며, 켜면 STT 원문과 LLM 출력을 남긴다.
+9. 엔진 `confirm_calibration()`이 `{"saved": false}`를 반환하면 재측정(상태 CALIBRATING 유지)으로 해석. 엔진의 `cancel_calibration`, `set_debug_label`은 선택 기능.
+10. `posture_sensitivity→T_forward` 매핑은 실험으로 정해야 하므로 현재 판정에는 적용하지 않는다.
+11. 캐시되는 `request_id` 응답은 **성공 응답만**. 휴식 알림 교체 정책은 `break_alarm_replace`(기본 true), 알림 문구는 기획 확정이 필요하다.
+12. 비정상 종료 세션은 폐기하지 않고 마지막 체크포인트 시각으로 마감한다(⚑정책 TBD).
+13. **미구현/하드웨어 필요**: RKLLM native binding은 보드와 일치하는 헤더·런타임을 받은 뒤 작성해야 한다. `/pairing/*`는 미구현. 로컬 미리보기는 디버그 설정에서만 사용할 수 있다.
 
 P4 명령 계약·모델 교체 요건·보드 없는 확인 절차는 [COMMAND_SCHEMA.md](COMMAND_SCHEMA.md)를 참고한다.

@@ -3,11 +3,12 @@ PostureEngine — P2 가 호출하는 단일 진입점 (명세 P1-9).
 
 step() 은 프레임 한 장을 처리한다. 배경 스레드(run_in_background)나 데모의 메인 루프가 반복 호출한다.
 - 카메라가 끊겨도 예외를 던지지 않고 unavailable 로 처리한다. (P1-9)
-- 이벤트 콜백은 처리 스레드에서 호출된다. 오래 걸리는 일은 콜백 안에서 하지 말 것.
+- 분석 이벤트는 큐에 넣고 별도 스레드에서 콜백을 호출해 처리 스레드 락과 분리한다.
 - 모니터링 중에는 고정된 side 한쪽의 좌표만 소스에 요청한다. (C2-1, C2-5)
 """
 import csv
 import logging
+import queue
 import threading
 import time
 from dataclasses import replace
@@ -31,6 +32,10 @@ class PostureEngine:
         self._lock = threading.RLock()
         self._source_lock = threading.Lock()
         self._callbacks = []
+        self._event_queue = queue.Queue()
+        self._event_stop = threading.Event()
+        self._event_thread = threading.Thread(target=self._event_loop, name="posture-events", daemon=True)
+        self._event_thread.start()
         self._status = "stopped"                 # stopped | running | paused
         self._phase = "idle"                     # 캘리브레이션: idle | collecting | ready | failed
         self._collector = None
@@ -41,7 +46,9 @@ class PostureEngine:
         self._log_fh = self._log_w = None
         self._log_meta, self._log_t0, self._log_n = ("", ""), None, 0
         cal = load_calibration(self.cfg.calibration_path)     # 재시작 후에도 기준값 로드
-        self._analyzer = PostureAnalyzer(self.cfg, cal, emit=self._dispatch)
+        # Never call P2 callbacks while holding engine._lock. The event worker
+        # breaks the engine -> hub lock dependency during analyzer updates.
+        self._analyzer = PostureAnalyzer(self.cfg, cal, emit=self._enqueue_event)
 
     # ---------- 소스 ----------
     @property
@@ -60,6 +67,20 @@ class PostureEngine:
             camera = "disconnected"
         pose = "ready" if self._source is not None and getattr(self._source, "pose_ready", False) else "unavailable"
         return {"camera": camera, "pose": pose}
+
+    def ensure_camera_ready(self) -> bool:
+        """Open/probe the camera before a start command; do not infer readiness from an unopened source."""
+        source = self.source
+        if getattr(source, "status", None) == "ready":
+            return True
+        with self._source_lock:
+            if getattr(source, "status", None) == "ready":
+                return True
+            try:
+                source.read(("left", "right"))
+            except Exception:
+                log.exception("camera readiness probe failed")
+        return getattr(source, "status", None) == "ready"
 
     # ---------- 모니터링 제어 (멱등) ----------
     @property
@@ -105,6 +126,16 @@ class PostureEngine:
                 cb(event)
             except Exception:
                 log.exception("event callback failed")
+
+    def _enqueue_event(self, event: dict):
+        self._event_queue.put(dict(event))
+
+    def _event_loop(self):
+        while not self._event_stop.is_set():
+            event = self._event_queue.get()
+            if event is None:
+                break
+            self._dispatch(event)
 
     def set_debug(self, enabled: bool):
         with self._lock:
@@ -279,5 +310,9 @@ class PostureEngine:
         self._stop_evt.set()
         if self._thread:
             self._thread.join(timeout=2.0)
+        self._event_queue.put(None)
+        self._event_stop.set()
+        if self._event_thread:
+            self._event_thread.join(timeout=2.0)
         if self._source is not None and hasattr(self._source, "close"):
             self._source.close()

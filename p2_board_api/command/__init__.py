@@ -263,12 +263,13 @@ def _validate(parsed: ParsedCommand, raw: str, services, schema: dict) -> Valida
     if (parsed.function, parsed.command) == ("monitor", "start") and getattr(services, "state", None) == "MONITORING":
         pre.discard("camera_ready")
         pre.discard("calibrated")
-    if "camera_ready" in pre:
-        camera = (getattr(services, "_health", None) or {}).get("camera")
-        if camera != "ready":
-            raise _Failure("PRECONDITION", precondition="CAMERA_NOT_READY", message_key="CAMERA_NOT_READY")
     if "calibrated" in pre and not services.calibrated():
         raise _Failure("PRECONDITION", precondition="CALIBRATION_REQUIRED", message_key="CALIBRATION_REQUIRED")
+    if "camera_ready" in pre:
+        ensure_camera = getattr(services, "ensure_camera_ready", None)
+        camera_ready = ensure_camera() if ensure_camera else (getattr(services, "_health", None) or {}).get("camera") == "ready"
+        if not camera_ready:
+            raise _Failure("PRECONDITION", precondition="CAMERA_NOT_READY", message_key="CAMERA_NOT_READY")
     if "monitoring" in pre and getattr(services, "state", None) != "MONITORING":
         posture = services.get_posture() if hasattr(services, "get_posture") else {}
         reason = "not_monitoring"
@@ -301,7 +302,7 @@ def _duration_text(seconds: int) -> str:
     return f"{rest}분"
 
 
-def _execute(command: ValidatedCommand, services, phrases: dict) -> dict:
+def _execute(command: ValidatedCommand, services, phrases: dict, conversation: dict | None = None) -> dict:
     if command._token is not _TOKEN:
         raise TypeError("executor accepts validated commands only")
     fn, action, p = command.function, command.command, command.params
@@ -347,13 +348,32 @@ def _execute(command: ValidatedCommand, services, phrases: dict) -> dict:
                        result={"reason": category}, intent=command.intent, validated=command.raw)
 
     if fn == "stretch":
-        guide = services.get_stretch_guide(p["part"])
-        if not guide:
-            guide = _load_yaml(ROOT / "config" / "stretch_guides.yaml").get(p["part"], {})
-        steps = guide.get("steps", []) if isinstance(guide, dict) else []
-        title = guide.get("title", phrases.get("stretch", {}).get(p["part"], "스트레칭 안내")) if isinstance(guide, dict) else "스트레칭 안내"
-        text = " ".join(steps[:3]) or f"{title} 안내를 준비하지 못했어요."
-        return _result(True, "OK", text, result={"part": int(p["part"]), "title": title, "steps": steps},
+        catalog = _load_yaml(ROOT / "config" / "stretch_exercises.yaml")
+        exercises = catalog.get(str(p["part"]), [])
+        context = conversation or {}
+        last = context.get("last_stretch") or {}
+        mode = context.get("stretch_mode", "first")
+        selected = None
+        if mode == "repeat" and str(last.get("part")) == str(p["part"]):
+            selected = next((x for x in exercises if x.get("id") == last.get("last_exercise_id")), None)
+        elif mode == "another" and str(last.get("part")) == str(p["part"]):
+            shown = set(last.get("shown_exercise_ids", []))
+            selected = next((x for x in exercises if x.get("id") not in shown), None)
+            if selected is None:
+                text = "현재 안내할 수 있는 다른 동작은 없어요. 방금 동작을 다시 안내할까요?"
+                return _result(False, "UNSUPPORTED", text, result={"reason": "no_alternative_exercise", "part": int(p["part"])},
+                               intent=command.intent, validated=command.raw)
+        if selected is None and exercises:
+            selected = exercises[0]
+        if selected is None:
+            return _result(False, "UNSUPPORTED", "해당 부위의 스트레칭 안내를 준비하지 못했어요.",
+                           result={"reason": "stretch_content_unavailable", "part": int(p["part"])},
+                           intent=command.intent, validated=command.raw)
+        steps = selected.get("steps", [])
+        title = selected.get("title", phrases.get("stretch", {}).get(p["part"], "스트레칭 안내"))
+        text = " ".join([title, *steps])
+        return _result(True, "OK", text, result={"part": int(p["part"]), "title": title,
+                                                  "steps": steps, "exercise_id": selected["id"]},
                        intent=command.intent, validated=command.raw)
 
     if fn in ("sitting", "break") and action in ("time", "check"):
@@ -386,7 +406,7 @@ def _execute(command: ValidatedCommand, services, phrases: dict) -> dict:
 
 
 def process(raw: str, services, *, utterance: str | None = None,
-            options: Options | dict | None = None) -> dict:
+            options: Options | dict | None = None, conversation: dict | None = None) -> dict:
     """Parse → guard → validate → execute. Compatible with P2 service handles."""
     schema = _schema()
     phrases = _phrases()
@@ -424,6 +444,8 @@ def process(raw: str, services, *, utterance: str | None = None,
                 raise _Failure("MULTI_COMMAND", reason="multiple_function_groups")
         if (validated.function, validated.command) == ("break", "set_alarm"):
             rule_minutes = parse_duration_minutes(utterance or "")
+            if rule_minutes is None and conversation:
+                rule_minutes = conversation.get("duration_minutes")
             if rule_minutes is None:
                 return _result(True, "OK", phrases.get("clarify", {}).get("time", "몇 분 뒤로 설정할까요?"),
                                intent=validated.intent, validated=validated.raw, pending={"type": "time"})
@@ -433,7 +455,7 @@ def process(raw: str, services, *, utterance: str | None = None,
             params["_minutes"] = str(rule_minutes)
             validated = ValidatedCommand(validated.function, validated.command, params,
                                          validated.intent, validated.raw, _TOKEN)
-        return _execute(validated, services, phrases)
+        return _execute(validated, services, phrases, conversation)
     except _Failure as failure:
         text = _message(failure.code, phrases, failure.message_key)
         pending = {"type": failure.awaiting} if failure.awaiting else None
@@ -453,9 +475,9 @@ def process_raw(raw: str, services) -> dict:
     return process(raw, services)
 
 
-def process_p2(raw: str, utterance: str | None, services) -> dict:
+def process_p2(raw: str, utterance: str | None, services, *, conversation: dict | None = None) -> dict:
     """Adapter for the P2 CommandService's existing processor protocol."""
-    return process(raw, services, utterance=utterance)
+    return process(raw, services, utterance=utterance, conversation=conversation)
 
 
 __all__ = ["Options", "ParsedCommand", "ValidatedCommand", "process", "process_raw",
