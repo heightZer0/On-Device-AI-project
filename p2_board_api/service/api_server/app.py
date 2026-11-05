@@ -182,26 +182,31 @@ def create_app(hub, cmd, cfg, background=False, mdns=None):
             return ok(result)
         internal = result.get("code", "ERROR")
         mapping = {
-            "INVALID_FORMAT": (422, "INVALID_COMMAND_FORMAT"),
-            "NOT_ALLOWED": (422, "UNSUPPORTED_COMMAND"),
-            "DISABLED": (422, "UNSUPPORTED_COMMAND"),
-            "BAD_PARAM": (422, "INVALID_PARAMETER"),
+            "INVALID_LLM_COMMAND": (422, "INVALID_LLM_COMMAND"),
+            "INVALID_FORMAT": (422, "INVALID_LLM_COMMAND"),
+            "NOT_ALLOWED": (422, "INVALID_LLM_COMMAND"),
+            "DISABLED": (422, "INVALID_LLM_COMMAND"),
+            "BAD_PARAM": (422, "INVALID_LLM_COMMAND"),
+            "UNSUPPORTED": (422, "UNSUPPORTED_COMMAND"),
             "MULTI_COMMAND": (422, "MULTI_COMMAND_NOT_SUPPORTED"),
+            "INVALID_TIME_RANGE": (422, "INVALID_TIME_RANGE"),
+            "CLARIFICATION_TIMEOUT": (408, "CLARIFICATION_TIMEOUT"),
             "ERROR": (500, "INTERNAL_ERROR"),
         }
         status, external = mapping.get(internal, (500, "INTERNAL_ERROR"))
         details = {"tts_text": result.get("tts_text", "")}
-        if internal == "DISABLED":
-            details["reason"] = "disabled"
+        details.update(result.get("result") or {})
         if internal == "PRECONDITION":
             precondition = result.get("precondition")
             if precondition == "CALIBRATION_REQUIRED":
                 status, external = 409, "CALIBRATION_REQUIRED"
             elif precondition == "SESSION_NOT_FOUND":
                 status, external = 404, "SESSION_NOT_FOUND"
+            elif precondition in ("POSTURE_DATA_UNAVAILABLE", "CAMERA_NOT_READY"):
+                status, external = (503, "CAMERA_NOT_READY") if precondition == "CAMERA_NOT_READY" else (409, "POSTURE_DATA_UNAVAILABLE")
             else:
                 status, external = 409, "INVALID_STATE"
-                details["reason"] = (result.get("result") or {}).get("reason") or "not_monitoring"
+                details["reason"] = (result.get("result") or {}).get("reason") or "state_idle"
         raise ApiError(status, external, result.get("tts_text", "명령을 처리하지 못했어요."), details)
 
     @api.post("/test-sound")

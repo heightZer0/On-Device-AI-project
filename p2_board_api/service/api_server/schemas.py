@@ -46,6 +46,7 @@ class CommandReq(BaseModel):
     command: Optional[str] = None
     confidence: Optional[float] = Field(None, ge=0, le=1)
     request_id: Optional[str] = None
+    session_id: Optional[str] = None
 
 
 class DebugLabelReq(BaseModel):

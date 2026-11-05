@@ -32,7 +32,7 @@ class LLMClientLike(Protocol):              # P4 LLM 서버
 
 class CommandProcessorLike(Protocol):       # P4 command 라이브러리
     def process(self, raw: str, services, *, utterance: Optional[str] = None, options=None) -> dict:
-        """-> {"code", "result", "tts_text", "pending"(선택: {"type":"part"} | {"type":"confirm_minutes","minutes":N})}"""
+        """-> {"code", "result", "tts_text", "pending"(선택: {"type":"body_part|intent|time"})}"""
 
 
 class ServiceHandles(Protocol):             # P4 실행기에 주입(Hub 가 구현)

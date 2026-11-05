@@ -15,7 +15,8 @@ mdns: {enabled: true, service_type: _bajahoe._tcp, name: bajahoe}   # D-05 제�
 preview_stream_enabled: false     # D-06. true는 debug_mode에서만
 conversation_ttl_sec: 10          # PLACEHOLDER
 break_alarm_replace: true         # TODO(CP0) 기존 휴식 알림 교체 정책 미확정
-time_crosscheck_mode: confirm     # P4 D-15: off | confirm | override
+multi_guard: unsupported_only     # v10.3 D-22: unsupported_only | block | off
+ai_log_enabled: false             # v10.3 D-26: opt-in, never stores audio
 health_refresh_sec: 5
 phrases_path: config/phrases.yaml
 part_words_path: command/schema/part_words.yaml

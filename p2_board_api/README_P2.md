@@ -1,4 +1,4 @@
-# P2 보드 API · 세션 저장 · 허브 · P4 명령 처리기 (v10 + v10.2 보충)
+# P2 보드 API · 세션 저장 · 허브 · P4 명령 처리기 (P0 v10.3)
 
 ## 실행
 ```bash
@@ -31,10 +31,11 @@ BAJAHOE_DEVICE_TOKEN=<토큰> python -m service.api_server.main   # 실제 P1(po
 ## ⚠ 가정 목록 (팀 확인 필요)
 1. `/session/history`는 `{items,total,limit,next_cursor}`이며 세션 객체에는 기본 누적 필드와 화면용 파생 필드가 포함된다. 캘린더 응답은 `month, timezone, totals, days, sessions`다.
 2. 인증 헤더는 `Authorization: Bearer <device_token>`로 가정(D-04). 페어링 API는 만들지 않았다(`pairing_enabled=false` 기본이라 생략).
-3. `/command` 검증 실패(`INVALID_FORMAT` 등)는 **HTTP 200 + `ok:false`**(P3가 `tts_text`를 읽어야 해서). LLM 장애는 503/504 오류 형식이며 `error.details.tts_text`에 안내 문장 포함.
-4. P4 인터페이스: `command.process(raw, utterance, services) -> {code, result, tts_text, pending?}`. 재질문은 `pending: {"type":"part"}` 또는 `{"type":"confirm_minutes","minutes":N}`로 알려 주는 것으로 가정. 분(minutes) 확인 시 만드는 raw는 `<break>(command="set_alarm", minutes="N")<suda_end>`.
+3. `/command` 검증 실패는 V6 오류 코드와 HTTP status를 사용한다. 재질문은 성공 응답 `result.awaiting`으로 `body_part|intent|time`을 반환한다.
+4. P4 인터페이스: `command.process_p2(raw, utterance, services)`. 명령은 V6 16개 허용 목록과 전체 일치해야 하며 알림 명령은 `minutes="N"`만 받는다. 실제 시간은 STT 원문에서 백엔드가 파싱한다.
 5. 재질문 후속 처리: part 재질문은 모호/무관 발화에 1회 재질문 후 해제하고 일반(LLM) 흐름으로 넘긴다. `part_words.yaml` 단어 목록은 초안.
-6. 시간 발화 검산은 P4에서 규칙 기반으로 처리한다. `time_crosscheck_mode`는 `off|confirm|override`이며 기본값은 `confirm`.
+6. 재질문 상태는 프로세스 메모리에 세션별 저장하며 30초 TTL, 한 번 재질문 후 실패하면 `CLARIFICATION_TIMEOUT`으로 끝낸다. 오디오 데이터는 저장하지 않는다.
+7. AI 요청 감사 로그는 `ai_log_enabled: true`일 때만 `ai_log_path` JSONL에 기록한다. 기본값은 꺼짐이며 이 모드는 STT 원문과 LLM 출력을 기록한다.
 7. 엔진 `confirm_calibration()`이 `{"saved": false}`를 반환하면 재측정(상태 CALIBRATING 유지)으로 해석. 엔진의 `cancel_calibration`, `set_debug_label`은 선택 기능.
 8. `posture_sensitivity→T_forward` 매핑은 실험으로 정해야 하므로 현재 판정에는 적용하지 않는다.
 9. 캐시되는 `request_id` 응답은 **성공 응답만**. 휴식 알림 교체 정책은 `break_alarm_replace`(기본 true), 알림 문구·`command_failed`·`break_cancelled` 문구는 PLACEHOLDER(기획 확정 필요).

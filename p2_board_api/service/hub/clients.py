@@ -39,6 +39,7 @@ class HttpLLMClient:
         try:
             r = httpx.post(self.url, timeout=self.timeout, json={
                 "model": self.model, "stream": False,
+                "temperature": 0, "top_k": 1, "enable_thinking": False, "max_tokens": 64,
                 "messages": [{"role": "user", "content": utterance}]})
         except httpx.TimeoutException as e:
             raise LLMTimeout() from e

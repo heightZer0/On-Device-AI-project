@@ -9,7 +9,6 @@ SPECS = {
     "debug_mode":             {"kind": bool, "default": False},
     "event_log_enabled":      {"kind": bool, "default": False},
     "preview_stream_enabled": {"kind": bool, "default": False},
-    "time_crosscheck_mode":   {"kind": str, "choices": ["off", "confirm", "override"], "default": "confirm"},
 }
 DEFAULTS = {k: v["default"] for k, v in SPECS.items()}
 

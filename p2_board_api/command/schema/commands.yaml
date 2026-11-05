@@ -1,5 +1,5 @@
-version: 10.2
-require_suda_end: false
+version: 10.3
+require_suda_end: true
 functions:
   posture:
     commands:
@@ -10,9 +10,9 @@ functions:
         prereq: [calibrated, monitoring, not_unavailable]
   monitor:
     commands:
-      start: {params: {}, prereq: [calibrated]}
-      pause: {params: {}, prereq: []}
-      stop: {params: {}, prereq: []}
+      start: {params: {}, prereq: [camera_ready, calibrated]}
+      pause: {params: {}, prereq: [monitoring]}
+      stop: {params: {}, prereq: [session]}
   stretch:
     commands:
       recommend:
@@ -23,15 +23,20 @@ functions:
   clarify:
     commands:
       body_part: {params: {}}
+      intent: {params: {}}
+      time: {params: {}}
   sitting:
     commands:
-      time: {params: {}, prereq: [session_or_last]}
+      time: {params: {}, prereq: [session]}
   break:
     commands:
-      check: {params: {}, prereq: [session_or_last]}
+      check: {params: {}, prereq: [session]}
       set_alarm:
         required: [minutes]
         params:
-          minutes: {type: int, min: 1, max: 180}
+          minutes: {type: int, literal: "N"}
+  unsupported:
+    commands:
+      reject: {params: {}}
 part_labels: {"0": 전체, "1": 목, "2": 어깨, "3": 허리}
 type_labels: {"0": 전체(현재 H 기준), "1": 머리 상대 위치}

@@ -1,35 +1,11 @@
-# P4 command contract and model handoff
+# P4 명령 계약 (P0 v10.3 / V6)
 
-## Command processor
+P2 accepts one normalized command per `/api/v1/command`. It removes `<think>…</think>`, whitespace, then requires an exact match to the 16 command forms in `command/schema/commands.yaml`. Commands outside the allowlist never execute.
 
-`command.process(raw, services, utterance=None, options=None)` is the public entry point. It parses exactly one `<function>(key="value")<suda_end>` result, checks the schema and the current P2 state, and executes only a `ValidatedCommand`. The schema is in `command/schema/commands.yaml`; wording, out-of-scope terms, and stretch instructions are data files under `config/` and `command/schema/`.
+The accepted families are posture check (types `0`, `1`), monitor start/pause/stop, stretch recommend (parts `0`–`3`), clarify (`body_part`, `intent`, `time`), sitting time, break check, break alarm (`minutes="N"`), and unsupported reject. Numeric minutes in LLM output are rejected; `parse_duration_minutes` extracts the actual duration from the STT utterance and enforces 1–180 minutes.
 
-For now `require_suda_end: false`: the parser accepts one command with or without the end marker because the quantized RKLLM output has not yet been checked. It still rejects duplicate markers, prose around the command, malformed arguments, and multiple commands. Once the board output is checked, update this single schema setting.
+`clarify` responses use HTTP 200 with `success: true` and `result.awaiting` set to `body_part|intent|time`. P2 stores the pending turn in memory for 30 seconds and allows one retry. Session data and clarification state are distinct; clarification is never persisted.
 
-Supported output families: posture check types 0/1; monitor start/pause/stop; stretch recommend parts 0–3; clarify body_part; sitting time; break check; break set_alarm minutes 1–180. Out-of-scope checks and preconditions run before execution. `time_crosscheck_mode` is `off`, `confirm` (default), or `override`.
+Voice `/command` prerequisites follow V6. REST app controls (`/monitoring/start|pause|stop`) retain their idempotent behavior. `multi_guard` defaults to `unsupported_only`; `block` also blocks detected multi-feature utterances joined by a connector. `ai_log_enabled` defaults to false; enabling it writes utterance text, model output, validation summary, request ID, model version, latency, and error code to `data/ai_log.jsonl`. Audio is never logged.
 
-## Swap in the quantized model
-
-P2 already talks to an OpenAI-compatible endpoint. In `config/api.yaml`, point `llm_url` at the model server's `/v1/chat/completions` URL and set `llm_model` to the model ID expected by that server. No parser, P2 route, or Android change should be needed if the server returns `choices[0].message.content` with the command string.
-
-The `.rkllm` file alone is not an inference server. To finish the hardware adapter, the model handoff must also include the matching RKLLM runtime/library and version, board architecture, tested launch/API method (or server package), context limit, and the exact training chat template and `<suda_end>` behavior. The RKLLM C binding must be implemented against that delivered header/runtime; it is intentionally not guessed in this board-free implementation. Until then, an OpenAI-compatible development server can exercise the entire P2→P4 parser/executor path.
-
-## Board-free checks
-
-Run unit coverage from `p2_board_api` with `python -m pytest tests -q` after adding/receiving the P4 table tests. For direct processor checks, call `command.process_raw(raw, fake_services)`; this bypasses model inference but exercises parsing, validation, prerequisites, and execution.
-
-With a reachable model server, test the authenticated route:
-
-```powershell
-$headers = @{ Authorization = "Bearer $env:BAJAHOE_DEVICE_TOKEN" }
-$body = @{ source = "voice"; utterance = "내 자세 괜찮아?" } | ConvertTo-Json
-Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8000/api/v1/command -Headers $headers -ContentType "application/json" -Body $body
-```
-
-For deterministic tests independent of the model, replace `utterance` with a raw `command`, for example:
-
-```json
-{"source":"app","command":"<monitor>(command=\"start\")<suda_end>"}
-```
-
-The production `main` uses P1 and the configured LLM endpoint. Without a board/camera, run the FastAPI fixture tests or a harness with `FakeEngine`; the app's Demo mode only tests app screens and does not test the P2 API connection.
+The OpenAI-compatible client sends only the user utterance (the system prompt belongs to the model server's chat template) with deterministic generation settings. The matching RKLLM `chat_template.json` cannot be derived from this repository alone: use the exact V6 training tokenizer and system prompt artifact before deploying the board model.
