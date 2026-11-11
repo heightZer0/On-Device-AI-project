@@ -54,6 +54,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     companion object {
         /** 이 시간 이상 나쁜 자세가 이어지면 경고 */
+        const val WARN_DELAY_SEC = 5
+
         /** 마지막 status 이후 이 시간이 지나면 판정 보류 */
         const val STALE_MS = 3000L
 
@@ -64,8 +66,13 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     private val storage = Storage(app)
     val discovery = DeviceDiscovery(app)
 
-    var screen by mutableStateOf(Screen.SPLASH)
-        private set
+    private var currentScreen by mutableStateOf(Screen.SPLASH)
+    var screen: Screen
+        get() = currentScreen
+        private set(value) {
+            if (currentScreen != value) AppLog.i("화면 이동 $currentScreen → $value")
+            currentScreen = value
+        }
 
     var nickname by mutableStateOf(storage.nickname)
         private set
@@ -142,20 +149,25 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         val saved = storage.savedDevice()
         when {
             saved == null -> screen = Screen.CONNECT
-            saved.third -> {
+            saved.demo -> {
                 useClient(DemoDeviceClient(viewModelScope))
                 goSetup(initial = true)
             }
+            saved.kind == DeviceKind.P2 -> {
+                // 팀 서버는 상태 조회를 계속 반복하므로 서버가 늦게 켜져도 알아서 붙는다
+                val info = DeviceInfo(
+                    "p2-${saved.host}", "바자회 기기", "P2", saved.host, saved.port,
+                    kind = DeviceKind.P2, token = saved.token,
+                )
+                useClient(makeClient(info))
+                goSetup(initial = true)
+            }
             else -> viewModelScope.launch {
-                val token = storage.deviceToken()
-                val info = if (token.isBlank()) null else Http.fetchInfo(saved.first, saved.second, token)
-                if (info == null) {
-                    connectError = "저장된 기기 연결을 확인할 수 없어요. IP와 기기 토큰을 다시 입력해 주세요."
-                    screen = Screen.CONNECT
-                } else {
-                    useClient(RestDeviceClient(info, token, viewModelScope))
-                    goSetup(initial = true)
-                }
+                // 저장된 기기로 바로 연결. 정보 확인이 안 돼도 재연결을 계속 시도한다
+                val info = Http.fetchInfo(saved.host, saved.port)
+                    ?: DeviceInfo("unknown", "바자회 기기", "?", saved.host, saved.port)
+                useClient(makeClient(info))
+                goSetup(initial = true)
             }
         }
     }
@@ -191,29 +203,37 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     // ================= 연결 =================
 
-    fun connectTo(host: String, port: Int, token: String) {
+    /** 연결 화면 토큰 칸에 미리 넣어 둘 값 */
+    val lastToken: String get() = storage.lastToken
+
+    private fun makeClient(info: DeviceInfo): DeviceClient =
+        if (info.isP2) P2DeviceClient(info, viewModelScope) else WsDeviceClient(info, viewModelScope)
+
+    fun connectTo(host: String, port: Int, token: String = "") {
         if (connecting) return
         val cleanHost = host.trim()
         if (cleanHost.isEmpty()) {
             connectError = "기기 IP 주소를 입력해 주세요."
             return
         }
-        if (token.isBlank()) {
-            connectError = "기기 토큰을 입력해 주세요."
-            return
-        }
         connecting = true
         connectError = null
+        if (token.isNotBlank()) storage.lastToken = token.trim()
         viewModelScope.launch {
-            val info = Http.fetchInfo(cleanHost, port, token.trim())
+            val result = Http.probe(cleanHost, port, token)
             connecting = false
-            if (info == null) {
-                connectError = "$cleanHost:$port 에서 바자회 기기를 찾지 못했어요. 같은 Wi-Fi인지, 기기가 켜져 있는지 확인해 주세요."
-                return@launch
+            when (result) {
+                is Http.ProbeResult.Failed -> {
+                    AppLog.w("기기 연결 실패 $cleanHost:$port ${result.message}")
+                    connectError = result.message
+                }
+                is Http.ProbeResult.Found -> {
+                    AppLog.i("기기 확인 ${result.info.kind} ${result.info.address}")
+                    storage.saveDevice(result.info)
+                    useClient(makeClient(result.info))
+                    goSetup(initial = true)
+                }
             }
-            storage.saveDevice(info, token.trim())
-            useClient(RestDeviceClient(info, token.trim(), viewModelScope))
-            goSetup(initial = true)
         }
     }
 
@@ -241,11 +261,10 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         clientJobs = listOf(
             viewModelScope.launch {
                 newClient.link.collect {
+                    AppLog.i("기기 연결 상태: $it (${newClient.info.address})")
                     link = it
                     // 연결될 때마다 기기에 앱 설정을 알려준다
-                    if (it == LinkState.CONNECTED) {
-                        newClient.config(volume, muted)
-                    }
+                    if (it == LinkState.CONNECTED) newClient.config(volume, muted)
                 }
             },
             viewModelScope.launch { newClient.messages.collect { onMessage(it) } },
@@ -255,16 +274,38 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun onMessage(msg: DeviceMessage) {
         when (msg) {
-            is DeviceMessage.Detect -> detect = msg
+            is DeviceMessage.Detect -> {
+                detect = msg
+                // 측정이 실패하면 이유를 보여 주고, 다시 측정이 시작되면 지운다
+                if (msg.failReason != null) calibrationError = Protocol.calibrationReasonText(msg.failReason)
+                else if (msg.progress == 0f && !calibrating) calibrationError = null
+            }
             is DeviceMessage.Calibration -> onCalibration(msg)
             is DeviceMessage.Status -> {
                 lastStatus = msg
                 lastStatusAt = System.currentTimeMillis()
             }
             is DeviceMessage.Error -> {
+                AppLog.w("기기 오류 ${msg.code}: ${msg.message}")
                 if (calibrating) onCalibration(DeviceMessage.Calibration(false, msg.code))
-                else if (screen == Screen.SETUP_INITIAL || screen == Screen.SETUP_RESET) {
-                    calibrationError = msg.message
+                when (msg.code) {
+                    // 토큰이 바뀌었으면 연결 화면으로 돌아가 다시 입력받는다
+                    "UNAUTHORIZED", "FORBIDDEN" -> if (screen != Screen.CONNECT) {
+                        stopTicking()
+                        client?.close()
+                        clientJobs.forEach { it.cancel() }
+                        client = null
+                        link = LinkState.DISCONNECTED
+                        connectError = "기기 토큰이 올바르지 않아요. 토큰을 다시 입력해 주세요."
+                        screen = Screen.CONNECT
+                    }
+                    // 기기에 기준 자세가 없으면 공부를 시작할 수 없다
+                    "CALIBRATION_REQUIRED" -> if (screen == Screen.STUDY) {
+                        stopTicking()
+                        flushPending()
+                        goSetup(initial = false)
+                        calibrationError = "기기에 저장된 기준 자세가 없어요. 먼저 자세를 설정해 주세요."
+                    }
                 }
             }
         }
@@ -277,24 +318,20 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         if (calibrating) return
         calibrating = true
         calibrationError = null
+        AppLog.i("기준 자세 저장 요청")
         c.calibrate()
         calibrationTimeout?.cancel()
         calibrationTimeout = viewModelScope.launch {
-            delay(10000)
+            delay(5000)
             if (calibrating) onCalibration(DeviceMessage.Calibration(false, "timeout"))
         }
-    }
-
-    fun retryCalibration() {
-        detect = null
-        calibrationError = null
-        client?.retryCalibration()
     }
 
     private fun onCalibration(msg: DeviceMessage.Calibration) {
         if (!calibrating) return
         calibrating = false
         calibrationTimeout?.cancel()
+        AppLog.i(if (msg.ok) "기준 자세 저장 성공" else "기준 자세 저장 실패: ${msg.reason}")
         if (msg.ok) {
             goHome()
         } else {
@@ -314,7 +351,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         resetPending()
         // 오늘 공부 횟수 +1, 타이머는 오늘 누적 시간부터 이어서 시작
         storage.addToDay(pendingDate, sessions = 1)
-        study = StudyUi(todayFocusSec = storage.today().focusSec)
+        study = StudyUi(todayFocusSec = storage.day(pendingDate).focusSec)
+        AppLog.i("공부 시작. 오늘 누적 ${study.todayFocusSec}초부터 이어서 측정")
         c.setMode(Protocol.MODE_MONITOR)
         c.session("start")
         screen = Screen.STUDY
@@ -328,9 +366,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun togglePause() {
-        val pause = !study.paused
-        if (pause) client?.pauseMonitoring() else client?.resumeMonitoring()
-        study = study.copy(paused = pause, badStreak = 0, alert = false)
+        val paused = !study.paused
+        if (paused) client?.pause() else client?.resume()
+        study = study.copy(paused = paused, badStreak = 0, alert = false)
     }
 
     private fun tick() {
@@ -346,6 +384,13 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             return
         }
         study = when (status!!.state) {
+            PostureState.NO_PERSON -> {
+                pendAway++
+                s.copy(
+                    awaySec = s.awaySec + 1, badStreak = 0, alert = false,
+                    state = status.state, issues = emptyList(), stale = false,
+                )
+            }
             PostureState.GOOD -> {
                 pendFocus++
                 pendGood++
@@ -359,24 +404,22 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 pendFocus++
                 status.issues.forEach { issueSeconds[it] = (issueSeconds[it] ?: 0) + 1 }
                 val streak = s.badStreak + 1
-                // P1 already applies its configured hold time before publishing `attention`.
-                val newWarning = s.state != PostureState.BAD || s.badStreak == 0
+                val warnDelay = client?.warnDelaySec ?: WARN_DELAY_SEC
+                val newWarning = streak == warnDelay
                 if (newWarning) {
                     pendWarn++
                     vibrate()
+                    AppLog.i("자세 경고 ${status.issues.map { it.code }} (이번 세션 ${s.warnings + 1}회)")
                 }
                 s.copy(
                     focusSec = s.focusSec + 1, todayFocusSec = s.todayFocusSec + 1,
                     badStreak = streak,
                     warnings = s.warnings + if (newWarning) 1 else 0,
-                    alert = true,
+                    alert = streak >= warnDelay,
                     state = status.state, issues = status.issues, stale = false,
                 )
             }
-            PostureState.NO_PERSON, PostureState.UNKNOWN -> s.copy(
-                state = PostureState.UNKNOWN, issues = emptyList(), badStreak = 0,
-                alert = false, stale = false,
-            )
+            PostureState.UNKNOWN -> s.copy(stale = true)
         }
         ticksSinceFlush++
         if (ticksSinceFlush >= FLUSH_EVERY_SEC) flushPending()
@@ -386,6 +429,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     private fun rollOverIfNewDay() {
         val now = LocalDate.now()
         if (now == pendingDate) return
+        AppLog.i("자정이 지나 $pendingDate 기록을 저장하고 $now 기록을 시작함")
         flushPending()
         pendingDate = now
         storage.addToDay(now, sessions = 1)
@@ -419,6 +463,10 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             awaySec = s.awaySec,
             warnings = s.warnings,
             topIssue = issueSeconds.maxByOrNull { it.value }?.key?.code,
+        )
+        AppLog.i(
+            "공부 종료. 집중 ${record.focusSec}초, 자세 유지율 ${record.postureRate}%, " +
+                "경고 ${record.warnings}회, 자리 비움 ${record.awaySec}초"
         )
         if (record.focusSec > 0) {
             storage.addSession(record)

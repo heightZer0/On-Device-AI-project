@@ -39,13 +39,24 @@ fun SetupScreen(vm: AppViewModel, initial: Boolean) {
     BackHandler(enabled = initial) { }
     BackHandler(enabled = !initial) { vm.goHome() }
 
+    val client = vm.client
     val connected = vm.link == LinkState.CONNECTED
     val detect = vm.detect
     val ready = connected && detect?.ready == true
 
     CameraBackdrop {
-        // 자세 영상은 보드에만 두고 앱 화면에는 안내용 실루엣을 유지한다.
-        SilhouetteLayer()
+        // 카메라 미리보기. 데모이거나 영상이 없으면 실루엣을 보여준다
+        if (client != null && !client.info.isDemo && connected) {
+            MjpegPreview(
+                url = client.info.previewUrl,
+                token = client.info.token,
+                snapshot = client.info.isP2,
+                modifier = Modifier.fillMaxSize(),
+                placeholder = { SilhouetteLayer() },
+            )
+        } else {
+            SilhouetteLayer()
+        }
     }
 
     Column(
@@ -83,7 +94,7 @@ fun SetupScreen(vm: AppViewModel, initial: Boolean) {
             Spacer(Modifier.width(12.dp))
             Text(
                 buildAnnotatedString {
-                    append(if (initial) "시작하기 전에\n" else "기준 자세를 다시\n")
+                    append(if (initial) "시작하기 전에\n" else "카메라를 보고\n")
                     withStyle(SpanStyle(color = Bj.BrandDark, fontWeight = FontWeight.Bold, fontSize = 17.sp)) {
                         append("바른 자세를 설정해주세요")
                     }
@@ -117,20 +128,26 @@ fun SetupScreen(vm: AppViewModel, initial: Boolean) {
                 .padding(horizontal = 20.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
         ) {
-            DetectChip("귀", connected && detect?.ear == true)
+            DetectChip("얼굴", connected && detect?.face == true)
             DetectChip("어깨", connected && detect?.shoulders == true)
-            DetectChip("기준 확보", connected && detect?.stable == true)
+            DetectChip("자세 고정", connected && detect?.stable == true)
         }
         Spacer(Modifier.height(10.dp))
         Text(
             text = when {
                 !connected -> "기기에 연결하는 중이에요…"
                 ready -> "좋아요! 이 자세를 기준으로 저장할게요"
-                else -> "카메라에 머리와 어깨가 보이도록 편안한 자세로 앉아 주세요"
+                detect != null && detect.progress in 0f..0.999f && detect.face && detect.shoulders ->
+                    "바른 자세 그대로 잠시 움직이지 마세요… ${(detect.progress * 100).toInt()}%"
+                else -> "카메라를 비스듬히 두고 얼굴 옆선과 어깨가 가이드 안에 오도록 맞춰주세요"
             },
             fontSize = 13.sp,
             color = Color.White.copy(alpha = 0.85f),
-            modifier = Modifier.align(Alignment.CenterHorizontally),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            lineHeight = 19.sp,
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .padding(horizontal = 24.dp),
         )
 
         vm.calibrationError?.let {
@@ -142,9 +159,6 @@ fun SetupScreen(vm: AppViewModel, initial: Boolean) {
                     .align(Alignment.CenterHorizontally)
                     .padding(top = 8.dp, start = 20.dp, end = 20.dp),
             )
-            TextButton(onClick = vm::retryCalibration, modifier = Modifier.align(Alignment.CenterHorizontally)) {
-                Text("다시 측정", color = Color.White, fontSize = 13.sp)
-            }
         }
 
         Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 16.dp)) {

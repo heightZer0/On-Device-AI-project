@@ -40,7 +40,6 @@ fun Long.toLocalDate(): LocalDate = Instant.ofEpochMilli(this).atZone(ZoneId.sys
 class Storage(context: Context) {
 
     private val prefs = context.getSharedPreferences("bajahoe", Context.MODE_PRIVATE)
-    private val authPrefs = context.getSharedPreferences("bajahoe_auth", Context.MODE_PRIVATE)
     private var daysCache: MutableMap<LocalDate, DayStat>? = null
 
     init {
@@ -71,11 +70,27 @@ class Storage(context: Context) {
 
     // ---------------- 기기 ----------------
 
-    fun savedDevice(): Triple<String, Int, Boolean>? {
+    /** 마지막으로 연결한 기기 */
+    data class SavedDevice(
+        val host: String,
+        val port: Int,
+        val demo: Boolean,
+        val kind: DeviceKind,
+        val token: String,
+    )
+
+    fun savedDevice(): SavedDevice? {
         val demo = prefs.getBoolean("device_demo", false)
         val host = prefs.getString("device_host", null)
         if (!demo && host == null) return null
-        return Triple(host ?: "demo", prefs.getInt("device_port", Protocol.DEFAULT_PORT), demo)
+        val kind = if (prefs.getString("device_kind", null) == DeviceKind.P2.name) DeviceKind.P2 else DeviceKind.WS
+        return SavedDevice(
+            host = host ?: "demo",
+            port = prefs.getInt("device_port", Protocol.DEFAULT_PORT),
+            demo = demo,
+            kind = kind,
+            token = prefs.getString("device_token", null).orEmpty(),
+        )
     }
 
     fun saveDevice(info: DeviceInfo) {
@@ -83,20 +98,21 @@ class Storage(context: Context) {
             .putString("device_host", info.host)
             .putInt("device_port", info.port)
             .putBoolean("device_demo", info.isDemo)
+            .putString("device_kind", info.kind.name)
+            .putString("device_token", info.token)
             .apply()
     }
 
-    /** 보드 API 인증 토큰. Android 앱 전용 저장소 외부로 내보내지 않는다. */
-    fun saveDevice(info: DeviceInfo, token: String) {
-        saveDevice(info)
-        authPrefs.edit().putString("device_token", token).apply()
-    }
-
-    fun deviceToken(): String = authPrefs.getString("device_token", "").orEmpty()
+    /** 연결 화면 입력칸에 미리 채워 둘 토큰 (기기를 지워도 남겨 둔다) */
+    var lastToken: String
+        get() = prefs.getString("last_token", null).orEmpty()
+        set(value) = prefs.edit().putString("last_token", value).apply()
 
     fun forgetDevice() {
-        prefs.edit().remove("device_host").remove("device_port").remove("device_demo").apply()
-        authPrefs.edit().remove("device_token").apply()
+        prefs.edit()
+            .remove("device_host").remove("device_port").remove("device_demo")
+            .remove("device_kind").remove("device_token")
+            .apply()
     }
 
     // ---------------- 날짜별 기록 ----------------

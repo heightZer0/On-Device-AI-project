@@ -66,9 +66,8 @@ fun StudyScreen(vm: AppViewModel) {
     val message = when {
         s.paused -> "일시정지 중이에요"
         disconnected -> "기기와 다시 연결하는 중이에요"
-        s.state == PostureState.UNKNOWN && !s.stale -> "지금은 자세를 확인하기 어려워요. 카메라에 머리와 어깨가 보이는지 확인해 주세요."
         s.stale -> "자세를 확인하고 있어요"
-        s.state == PostureState.NO_PERSON -> "측정 가능한 위치에 앉아 주세요"
+        s.state == PostureState.NO_PERSON -> "자리를 비웠어요. 돌아오면 다시 측정해요"
         s.alert -> s.issues.firstOrNull()?.advice ?: "자세를 바르게 해 주세요"
         s.state == PostureState.BAD -> "자세가 조금 흐트러졌어요"
         else -> "바른 자세를 잘 유지하고 있어요"
@@ -82,15 +81,30 @@ fun StudyScreen(vm: AppViewModel) {
         label = "accent",
     )
 
+    val client = vm.client
     CameraBackdrop {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            PersonSilhouette(
-                Modifier
-                    .padding(bottom = 120.dp)
-                    .width(260.dp)
-                    .height(380.dp)
-                    .alpha(if (s.state == PostureState.NO_PERSON) 0.25f else 1f)
+        // 기기 카메라에 비친 내 모습. 데모이거나 영상이 없으면 실루엣을 보여준다
+        val silhouette: @Composable () -> Unit = {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                PersonSilhouette(
+                    Modifier
+                        .padding(bottom = 120.dp)
+                        .width(260.dp)
+                        .height(380.dp)
+                        .alpha(if (s.state == PostureState.NO_PERSON) 0.25f else 1f)
+                )
+            }
+        }
+        if (client != null && !client.info.isDemo && !disconnected) {
+            MjpegPreview(
+                url = client.info.previewUrl,
+                token = client.info.token,
+                snapshot = client.info.isP2,
+                modifier = Modifier.fillMaxSize(),
+                placeholder = silhouette,
             )
+        } else {
+            silhouette()
         }
         if (s.alert) {
             Box(Modifier.fillMaxSize().background(Bj.Danger.copy(alpha = 0.18f)))

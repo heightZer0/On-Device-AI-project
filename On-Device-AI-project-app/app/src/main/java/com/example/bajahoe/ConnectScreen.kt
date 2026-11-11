@@ -43,7 +43,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -71,7 +70,7 @@ fun ConnectScreen(vm: AppViewModel) {
     val searching by vm.discovery.searching.collectAsState()
     var host by rememberSaveable { mutableStateOf("") }
     var port by rememberSaveable { mutableStateOf(Protocol.DEFAULT_PORT.toString()) }
-    var deviceToken by rememberSaveable { mutableStateOf("") }
+    var token by rememberSaveable { mutableStateOf(vm.lastToken) }
 
     Box(
         Modifier
@@ -120,7 +119,7 @@ fun ConnectScreen(vm: AppViewModel) {
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     found.forEach { d ->
-                        DeviceRow(d) { vm.connectTo(d.host, d.port, deviceToken) }
+                        DeviceRow(d) { vm.connectTo(d.host, d.port, token) }
                     }
                 }
             }
@@ -153,20 +152,19 @@ fun ConnectScreen(vm: AppViewModel) {
             }
             Spacer(Modifier.height(10.dp))
             OutlinedTextField(
-                value = deviceToken,
-                onValueChange = { deviceToken = it },
+                value = token,
+                onValueChange = { token = it.trim() },
                 label = { Text("기기 토큰") },
-                placeholder = { Text("보드의 BAJAHOE_DEVICE_TOKEN") },
+                placeholder = { Text("서버의 BAJAHOE_DEVICE_TOKEN 값") },
                 singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 shape = RoundedCornerShape(16.dp),
                 colors = fieldColors(),
                 modifier = Modifier.fillMaxWidth(),
             )
             Text(
-                "기기와 같은 Wi-Fi에서 연결해 주세요. 앱은 자세 영상에 접근하지 않아요.",
-                fontSize = 12.sp, color = Bj.Muted, modifier = Modifier.padding(top = 8.dp),
+                "토큰은 기기 서버를 켤 때 정한 값이에요. 주변 기기를 눌러 연결할 때도 이 토큰을 써요.",
+                fontSize = 12.sp, color = Bj.Muted, lineHeight = 18.sp, modifier = Modifier.padding(top = 8.dp),
             )
 
             vm.connectError?.let {
@@ -185,8 +183,8 @@ fun ConnectScreen(vm: AppViewModel) {
             Spacer(Modifier.height(20.dp))
             PrimaryButton(
                 text = if (vm.connecting) "연결하는 중…" else "연결하기",
-                onClick = { vm.connectTo(host, port.toIntOrNull() ?: Protocol.DEFAULT_PORT, deviceToken) },
-                enabled = !vm.connecting && host.isNotBlank() && deviceToken.isNotBlank(),
+                onClick = { vm.connectTo(host, port.toIntOrNull() ?: Protocol.DEFAULT_PORT, token) },
+                enabled = !vm.connecting && host.isNotBlank(),
             )
             Spacer(Modifier.height(8.dp))
             TextButton(

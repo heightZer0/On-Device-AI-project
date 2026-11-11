@@ -13,38 +13,59 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
+import okhttp3.WebSocket
+import okhttp3.WebSocketListener
 import org.json.JSONObject
-import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 enum class LinkState { DISCONNECTED, CONNECTING, CONNECTED, RECONNECTING }
 
-/** P2 REST API와 데모 기기를 같은 화면 인터페이스로 제공한다. */
+/** 오렌지파이 기기와의 연결. 실제 기기와 데모 기기가 같은 인터페이스를 쓴다 */
 abstract class DeviceClient {
     abstract val info: DeviceInfo
+
     protected val linkState = MutableStateFlow(LinkState.DISCONNECTED)
     val link: StateFlow<LinkState> = linkState.asStateFlow()
+
     protected val incoming = MutableSharedFlow<DeviceMessage>(extraBufferCapacity = 64)
     val messages: SharedFlow<DeviceMessage> = incoming.asSharedFlow()
+
+    /** 재연결할 때 다시 보내기 위해 기억해 두는 현재 모드 */
     protected var currentMode: String = Protocol.MODE_IDLE
-    val mode: String get() = currentMode
 
     abstract fun connect()
     abstract fun close()
-    open fun setMode(mode: String) { currentMode = mode }
-    open fun calibrate() = Unit
-    open fun retryCalibration() = setMode(Protocol.MODE_CALIBRATE)
-    open fun session(action: String) = Unit
-    open fun pauseMonitoring() = Unit
-    open fun resumeMonitoring() = Unit
-    open fun config(volume: Int, muted: Boolean) = Unit
-    open fun testSound() = Unit
+    protected abstract fun send(json: String)
+
+    open fun setMode(mode: String) {
+        currentMode = mode
+        send(Protocol.mode(mode))
+    }
+
+    open fun calibrate() = send(Protocol.calibrate())
+
+    open fun session(action: String) = send(Protocol.session(action))
+
+    /** 음성 안내 볼륨과 음소거 상태를 기기에 알린다 */
+    open fun config(volume: Int, muted: Boolean) = send(Protocol.config(volume, muted))
+
+    /** 기기 스피커로 확인용 안내음을 한 번 재생한다 */
+    open fun testSound() = send(Protocol.testSound())
+
+    /** 공부 일시정지와 다시 시작. 기기가 지원하지 않으면 앱에서만 처리한다 */
+    open fun pause() = Unit
+    open fun resume() = Unit
+
+    /**
+     * 나쁜 자세가 몇 초 이어져야 앱이 경고할지.
+     * 기기가 이미 시간 조건을 걸어 판정을 보내는 경우(P2)는 작게 둔다.
+     */
+    open val warnDelaySec: Int get() = AppViewModel.WARN_DELAY_SEC
 }
 
 object Http {
@@ -52,278 +73,201 @@ object Http {
         OkHttpClient.Builder()
             .connectTimeout(3, TimeUnit.SECONDS)
             .readTimeout(10, TimeUnit.SECONDS)
-            .writeTimeout(10, TimeUnit.SECONDS)
+            .pingInterval(5, TimeUnit.SECONDS)
             .build()
     }
 
-    /** Health is public; authenticated /status confirms both that this is P2 and that the token works. */
-    suspend fun fetchInfo(host: String, port: Int, token: String): DeviceInfo? = withContext(Dispatchers.IO) {
-        try {
-            val base = baseUrl(host, port)
-            val health = execute(Request.Builder().url("$base/api/v1/health").get().build())
-            if (!health.optString("status").let { it == "ok" || it == "degraded" }) return@withContext null
-            execute(Request.Builder().url("$base/api/v1/status").header("Authorization", "Bearer $token").get().build())
-            DeviceInfo(
-                deviceId = "bajahoe-${host.hashCode().toUInt().toString(16)}",
-                name = "바자회 기기",
-                version = "P2 REST",
-                host = host,
-                port = port,
-            )
-        } catch (_: Exception) {
-            null
-        }
+    private val JSON_TYPE = "application/json; charset=utf-8".toMediaType()
+
+    sealed interface ProbeResult {
+        data class Found(val info: DeviceInfo) : ProbeResult
+        data class Failed(val message: String) : ProbeResult
     }
 
-    internal fun baseUrl(host: String, port: Int): String {
-        val authority = if (host.contains(":") && !host.startsWith("[")) "[$host]" else host
-        return "http://$authority:$port"
-    }
-
-    internal suspend fun execute(request: Request): JSONObject = withContext(Dispatchers.IO) {
-        client.newCall(request).execute().use { response ->
-            val raw = response.body?.string().orEmpty()
-            val body = try { JSONObject(raw) } catch (_: Exception) { JSONObject() }
-            if (!response.isSuccessful) {
-                val message = body.optJSONObject("error")?.optString("message")
-                    ?.takeIf { !it.isNullOrBlank() } ?: "기기 요청에 실패했어요. (${response.code})"
-                throw DeviceRequestException(message, body.optJSONObject("error")?.optString("code"))
+    /**
+     * 입력한 주소의 기기 종류를 확인한다.
+     * 1) 팀 백엔드(P2): GET /api/v1/health 가 응답하면 토큰으로 /api/v1/status 를 호출해 인증을 확인
+     * 2) WebSocket 기기: GET /api/info
+     */
+    suspend fun probe(host: String, port: Int, token: String): ProbeResult = withContext(Dispatchers.IO) {
+        val health = call("GET", "http://$host:$port/api/v1/health", null, null)
+        if (health != null && health.first == 200 && health.second?.has("camera") == true) {
+            AppLog.received("200 /api/v1/health ${health.second}")
+            val cleanToken = token.trim()
+            // 서버 인증이 꺼져 있으면 토큰 없이도 된다
+            val status = call("GET", "http://$host:$port/api/v1/status", cleanToken, null)
+            return@withContext when (status?.first) {
+                null -> ProbeResult.Failed("$host:$port 기기에 연결하지 못했어요.")
+                401, 403 -> ProbeResult.Failed(
+                    if (cleanToken.isEmpty()) "기기 토큰을 입력해 주세요. 서버를 켤 때 정한 BAJAHOE_DEVICE_TOKEN 값이에요."
+                    else "토큰이 올바르지 않아요. 서버의 BAJAHOE_DEVICE_TOKEN 값과 같은지 확인해 주세요."
+                )
+                else -> ProbeResult.Found(
+                    DeviceInfo(
+                        deviceId = "p2-$host",
+                        name = "바자회 기기",
+                        version = "P2",
+                        host = host,
+                        port = port,
+                        kind = DeviceKind.P2,
+                        token = cleanToken,
+                    )
+                )
             }
-            body
+        }
+        fetchInfo(host, port)?.let { return@withContext ProbeResult.Found(it) }
+        ProbeResult.Failed(
+            "$host:$port 에서 바자회 기기를 찾지 못했어요. 같은 Wi-Fi인지, 서버가 켜져 있는지, 포트(팀 서버 기본 8000)가 맞는지 확인해 주세요."
+        )
+    }
+
+    /** HTTP 요청. (응답 코드, JSON 본문) 을 돌려주고, 연결 자체가 실패하면 null */
+    fun call(method: String, url: String, token: String?, body: JSONObject?): Pair<Int, JSONObject?>? = try {
+        val builder = Request.Builder().url(url)
+        if (!token.isNullOrBlank()) builder.header("Authorization", "Bearer $token")
+        if (method == "GET") builder.get()
+        else builder.method(method, (body?.toString() ?: "{}").toRequestBody(JSON_TYPE))
+        client.newCall(builder.build()).execute().use { resp ->
+            val text = resp.body?.string().orEmpty()
+            val json = try {
+                if (text.isBlank()) null else JSONObject(text)
+            } catch (e: Exception) {
+                null
+            }
+            resp.code to json
+        }
+    } catch (e: Exception) {
+        null
+    }
+
+    /** GET /api/info 로 기기인지 확인한다. 실패하면 null */
+    suspend fun fetchInfo(host: String, port: Int): DeviceInfo? = withContext(Dispatchers.IO) {
+        try {
+            val req = Request.Builder().url("http://$host:$port/api/info").build()
+            client.newCall(req).execute().use { resp ->
+                if (!resp.isSuccessful) {
+                    AppLog.w("기기 정보 조회 실패 $host:$port HTTP ${resp.code}")
+                    return@use null
+                }
+                val body = resp.body?.string() ?: return@use null
+                AppLog.received(body)
+                Protocol.parseInfo(body, host, port)
+            }
+        } catch (e: Exception) {
+            AppLog.w("기기 정보 조회 실패 $host:$port ${e.javaClass.simpleName}: ${e.message}")
+            null
         }
     }
 }
 
-private class DeviceRequestException(message: String, val errorCode: String? = null) : Exception(message)
-
-/** P2 REST 연결. 상태는 1초 간격으로 조회하고, 네트워크 오류에는 1·2·4·10초 간격으로 재접속한다. */
-class RestDeviceClient(
+class WsDeviceClient(
     override val info: DeviceInfo,
-    private val token: String,
     private val scope: CoroutineScope,
 ) : DeviceClient() {
-    private val base = Http.baseUrl(info.host, info.port)
-    private val jsonType = "application/json; charset=utf-8".toMediaType()
-    private var pollJob: Job? = null
-    private var calibrationJob: Job? = null
-    private var closed = false
-    private var calibrationId: String? = null
-    private var calibrationFinished = false
-    private var appliedMode: String? = null
-    private val modeMutex = Mutex()
+
+    private var socket: WebSocket? = null
+    private var closedByUser = false
+    private var reconnectJob: Job? = null
 
     override fun connect() {
-        closed = false
-        linkState.value = LinkState.CONNECTING
-        pollJob?.cancel()
-        pollJob = scope.launch {
-            var retry = 0
-            while (isActive && !closed) {
-                try {
-                    val status = get("/api/v1/status")
-                    linkState.value = LinkState.CONNECTED
-                    incoming.tryEmit(Protocol.parseApiStatus(status))
-                    val serverState = status.optString("system_state")
-                    reconcileMode(status)
-                    applyModeIfNeeded()
-                    retry = 0
-                    delay(1000)
-                } catch (e: Exception) {
-                    linkState.value = LinkState.RECONNECTING
-                    val waitSec = listOf(1L, 2L, 4L, 10L)[retry.coerceAtMost(3)]
-                    retry = (retry + 1).coerceAtMost(3)
-                    delay(waitSec * 1000)
-                }
+        closedByUser = false
+        open()
+    }
+
+    private fun open() {
+        linkState.value =
+            if (linkState.value == LinkState.DISCONNECTED) LinkState.CONNECTING else LinkState.RECONNECTING
+        AppLog.i("WebSocket 연결 시도 ${info.wsUrl}")
+        val request = Request.Builder().url(info.wsUrl).build()
+        socket = Http.client.newWebSocket(request, object : WebSocketListener() {
+            override fun onOpen(webSocket: WebSocket, response: Response) {
+                AppLog.i("WebSocket 연결됨 ${info.wsUrl}")
+                linkState.value = LinkState.CONNECTED
+                sendOn(webSocket, Protocol.hello())
+                sendOn(webSocket, Protocol.mode(currentMode))
             }
-        }
-    }
 
-    override fun setMode(mode: String) {
-        if (mode != currentMode && mode == Protocol.MODE_CALIBRATE) calibrationFinished = false
-        currentMode = mode
-        if (linkState.value == LinkState.CONNECTED) scope.launch { applyModeIfNeeded() }
-    }
-
-    private suspend fun applyModeIfNeeded() {
-        modeMutex.withLock {
-            val mode = currentMode
-            if (appliedMode != mode) {
-                when (mode) {
-                    Protocol.MODE_CALIBRATE -> beginCalibration()
-                    Protocol.MODE_MONITOR -> post("/api/v1/monitoring/start", controlBody())
-                    else -> {
-                        post("/api/v1/monitoring/stop", controlBody())
-                    }
-                }
-                appliedMode = mode
+            override fun onMessage(webSocket: WebSocket, text: String) {
+                AppLog.received(text)
+                val msg = Protocol.parse(text)
+                if (msg == null) AppLog.w("해석할 수 없는 메시지: $text")
+                else incoming.tryEmit(msg)
             }
-        }
-    }
 
-    private fun reconcileMode(status: JSONObject) {
-        if (currentMode == Protocol.MODE_CALIBRATE && calibrationFinished) return
-        val serverState = status.optString("system_state")
-        val needsMode = when (currentMode) {
-            Protocol.MODE_CALIBRATE -> serverState != "CALIBRATING"
-            Protocol.MODE_MONITOR -> serverState != "MONITORING" && serverState != "PAUSED"
-            else -> serverState == "MONITORING" || serverState == "PAUSED"
-        }
-        if (needsMode) {
-            appliedMode = null
-            if (currentMode == Protocol.MODE_CALIBRATE) calibrationId = null
-        }
-    }
-
-    private suspend fun beginCalibration() {
-        calibrationFinished = false
-        calibrationJob?.cancel()
-        val response = post("/api/v1/calibration/start", JSONObject()
-            .put("duration_sec", 5)
-            .put("request_id", requestId()))
-        calibrationId = response.optString("calibration_id").takeIf { it.isNotBlank() }
-            ?: throw DeviceRequestException("캘리브레이션을 시작하지 못했어요.")
-        // Hub wraps the P1 result in `detection`; P1 itself nests sides under `detected`.
-        val detection = response.optJSONObject("detection")
-        val sides = detection?.optJSONObject("detected") ?: detection
-        val left = sides?.optJSONObject("left")
-        val right = sides?.optJSONObject("right")
-        val ear = left?.optBoolean("ear") == true || right?.optBoolean("ear") == true
-        val shoulder = left?.optBoolean("shoulder") == true || right?.optBoolean("shoulder") == true
-        incoming.tryEmit(DeviceMessage.Detect(ear, shoulder, false))
-
-        calibrationJob = scope.launch {
-            while (isActive && !closed) {
-                try {
-                    val preview = get("/api/v1/calibration/preview?calibration_id=$calibrationId")
-                    val state = preview.optString("state").uppercase()
-                    when (state) {
-                        "READY" -> {
-                            incoming.tryEmit(DeviceMessage.Detect(true, true, true))
-                            return@launch
-                        }
-                        "FAILED" -> {
-                            val detail = preview.optJSONObject("preview")
-                            val error = detail?.optString("error")?.takeIf { it.isNotBlank() } ?: "calibration_failed"
-                            incoming.tryEmit(DeviceMessage.Error(error, Protocol.calibrationReasonText(error)))
-                            return@launch
-                        }
-                    }
-                    delay(1000)
-                } catch (e: Exception) {
-                    incoming.tryEmit(DeviceMessage.Error("calibration_unavailable", e.message ?: "캘리브레이션 상태를 읽지 못했어요."))
-                    return@launch
-                }
+            override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+                AppLog.i("WebSocket 닫힘 code=$code reason=$reason")
+                onDropped(webSocket)
             }
-        }
+
+            override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+                AppLog.w("WebSocket 연결 실패 ${t.javaClass.simpleName}: ${t.message}")
+                onDropped(webSocket)
+            }
+        })
     }
 
-    override fun calibrate() {
-        val id = calibrationId ?: run {
-            incoming.tryEmit(DeviceMessage.Calibration(false, "calibration_not_started"))
+    private fun onDropped(webSocket: WebSocket) {
+        if (webSocket != socket) return
+        socket = null
+        if (closedByUser) {
+            linkState.value = LinkState.DISCONNECTED
             return
         }
-        scope.launch {
-            try {
-                val result = post("/api/v1/calibration/confirm", JSONObject()
-                    .put("calibration_id", id).put("confirm", true).put("request_id", requestId()))
-                val ok = result.optBoolean("calibrated", result.optBoolean("saved", false))
-                if (ok) {
-                    calibrationId = null
-                    calibrationJob?.cancel()
-                }
-                calibrationFinished = ok
-                incoming.tryEmit(DeviceMessage.Calibration(ok, if (ok) null else "calibration_failed"))
-            } catch (e: Exception) {
-                incoming.tryEmit(DeviceMessage.Calibration(false, (e as? DeviceRequestException)?.errorCode ?: "calibration_failed"))
-            }
+        linkState.value = LinkState.RECONNECTING
+        reconnectJob?.cancel()
+        reconnectJob = scope.launch {
+            delay(2000)
+            if (!closedByUser) open()
         }
     }
 
-    override fun retryCalibration() {
-        scope.launch {
-            try {
-                calibrationJob?.cancel()
-                calibrationId?.let { id ->
-                    post("/api/v1/calibration/confirm", JSONObject()
-                        .put("calibration_id", id).put("confirm", false).put("request_id", requestId()))
-                }
-                calibrationId = null
-                appliedMode = null
-                beginCalibration()
-                appliedMode = Protocol.MODE_CALIBRATE
-            } catch (e: Exception) {
-                emitError(e)
-            }
+    override fun send(json: String) {
+        val s = socket
+        if (s == null) {
+            AppLog.w("연결이 없어 보내지 못함: $json")
+            return
         }
+        sendOn(s, json)
     }
 
-    override fun pauseMonitoring() {
-        scope.launch { runCatching { post("/api/v1/monitoring/pause", controlBody()) }
-            .onFailure { emitError(it) } }
-    }
-
-    override fun resumeMonitoring() {
-        scope.launch { runCatching { post("/api/v1/monitoring/start", controlBody()) }
-            .onFailure { emitError(it) } }
-    }
-
-    override fun config(volume: Int, muted: Boolean) {
-        scope.launch {
-            val body = JSONObject()
-                .put("tts_volume", volume.coerceIn(0, 100) / 100.0)
-                .put("voice_feedback_enabled", !muted)
-            runCatching { put("/api/v1/settings", body) }.onFailure { emitError(it) }
-        }
-    }
-
-    override fun testSound() {
-        scope.launch { runCatching { post("/api/v1/test-sound", controlBody()) }.onFailure { emitError(it) } }
-    }
-
-    private suspend fun get(path: String): JSONObject =
-        Http.execute(authRequest(path).get().build())
-
-    private suspend fun post(path: String, body: JSONObject): JSONObject =
-        Http.execute(authRequest(path).post(body.toString().toRequestBody(jsonType)).build())
-
-    private suspend fun put(path: String, body: JSONObject): JSONObject =
-        Http.execute(authRequest(path).put(body.toString().toRequestBody(jsonType)).build())
-
-    private fun authRequest(path: String): Request.Builder = Request.Builder()
-        .url("$base$path")
-        .header("Authorization", "Bearer $token")
-        .header("Accept", "application/json")
-
-    private fun controlBody() = JSONObject().put("source", "app").put("request_id", requestId())
-    private fun requestId() = UUID.randomUUID().toString()
-
-    private fun emitError(error: Throwable) {
-        incoming.tryEmit(DeviceMessage.Error(
-            (error as? DeviceRequestException)?.errorCode ?: "request_failed",
-            error.message ?: "기기 요청을 처리하지 못했어요.",
-        ))
+    private fun sendOn(webSocket: WebSocket, json: String) {
+        AppLog.sent(json)
+        webSocket.send(json)
     }
 
     override fun close() {
-        closed = true
-        pollJob?.cancel()
-        calibrationJob?.cancel()
+        closedByUser = true
+        reconnectJob?.cancel()
+        socket?.close(1000, "bye")
+        socket = null
         linkState.value = LinkState.DISCONNECTED
     }
 }
 
-/** 보드 없이 앱 화면을 둘러볼 수 있는 시나리오 기기 */
+/** 보드 없이 앱을 둘러볼 수 있는 가짜 기기 */
 class DemoDeviceClient(private val scope: CoroutineScope) : DeviceClient() {
-    override val info = DeviceInfo("demo", "데모 기기", "demo", "demo", 0, isDemo = true)
+
+    override val info = DeviceInfo(
+        deviceId = "demo",
+        name = "데모 기기",
+        version = "demo",
+        host = "demo",
+        port = 0,
+        isDemo = true,
+    )
+
     private var loopJob: Job? = null
     private var modeStartedAt = System.currentTimeMillis()
+
+    // 지속 초, 상태, 원인
     private val scenario = listOf(
         Triple(15, PostureState.GOOD, emptyList<PostureIssue>()),
-        Triple(10, PostureState.BAD, listOf(PostureIssue.HEAD_DOWN)),
+        Triple(10, PostureState.BAD, listOf(PostureIssue.FORWARD_HEAD)),
         Triple(8, PostureState.GOOD, emptyList<PostureIssue>()),
-        Triple(8, PostureState.BAD, listOf(PostureIssue.TOO_CLOSE)),
-        Triple(6, PostureState.UNKNOWN, emptyList<PostureIssue>()),
+        Triple(8, PostureState.BAD, listOf(PostureIssue.HEAD_DOWN)),
+        Triple(6, PostureState.NO_PERSON, emptyList<PostureIssue>()),
         Triple(10, PostureState.GOOD, emptyList<PostureIssue>()),
+        Triple(9, PostureState.BAD, listOf(PostureIssue.SLOUCH)),
     )
 
     override fun connect() {
@@ -342,20 +286,52 @@ class DemoDeviceClient(private val scope: CoroutineScope) : DeviceClient() {
     private fun emitTick() {
         val elapsed = (System.currentTimeMillis() - modeStartedAt) / 1000.0
         when (currentMode) {
-            Protocol.MODE_CALIBRATE -> incoming.tryEmit(DeviceMessage.Detect(elapsed > 1.0, elapsed > 1.5, elapsed > 2.5))
+            Protocol.MODE_CALIBRATE -> incoming.tryEmit(
+                DeviceMessage.Detect(
+                    face = elapsed > 1.0,
+                    shoulders = elapsed > 1.5,
+                    stable = elapsed > 2.5,
+                )
+            )
             Protocol.MODE_MONITOR -> {
                 val total = scenario.sumOf { it.first }
                 var t = elapsed % total
                 var step = scenario.first()
-                for (s in scenario) { step = s; if (t < s.first) break; t -= s.first }
-                val score = when (step.second) { PostureState.GOOD -> 90; PostureState.BAD -> 58; else -> -1 }
+                for (s in scenario) {
+                    step = s
+                    if (t < s.first) break
+                    t -= s.first
+                }
+                val score = when (step.second) {
+                    PostureState.GOOD -> 90
+                    PostureState.BAD -> 58
+                    else -> 0
+                }
                 incoming.tryEmit(DeviceMessage.Status(step.second, score, step.third))
             }
         }
     }
 
-    override fun setMode(mode: String) { currentMode = mode; modeStartedAt = System.currentTimeMillis() }
-    override fun retryCalibration() { setMode(Protocol.MODE_CALIBRATE) }
-    override fun calibrate() { scope.launch { delay(300); incoming.tryEmit(DeviceMessage.Calibration(true, null)) } }
-    override fun close() { loopJob?.cancel(); linkState.value = LinkState.DISCONNECTED }
+    override fun setMode(mode: String) {
+        AppLog.i("[데모] mode=$mode")
+        currentMode = mode
+        modeStartedAt = System.currentTimeMillis()
+    }
+
+    override fun calibrate() {
+        AppLog.i("[데모] 기준 자세 저장 요청")
+        scope.launch {
+            delay(700)
+            incoming.tryEmit(DeviceMessage.Calibration(ok = true, reason = null))
+        }
+    }
+
+    override fun session(action: String) = Unit
+
+    override fun send(json: String) = Unit
+
+    override fun close() {
+        loopJob?.cancel()
+        linkState.value = LinkState.DISCONNECTED
+    }
 }

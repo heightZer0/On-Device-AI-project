@@ -23,21 +23,31 @@ import okhttp3.Request
 import java.io.ByteArrayOutputStream
 
 /**
- * 기기의 /stream.mjpg 를 받아 화면에 그린다. 자세설정 화면에서만 사용한다.
- * 첫 프레임이 오기 전이나 스트림이 없으면 [placeholder] 를 보여준다.
+ * 기기 카메라 영상을 화면에 그린다. 자세설정 화면에서만 사용한다.
+ * - WebSocket 기기: /stream.mjpg 연속 스트림
+ * - 팀 서버(P2, [snapshot] = true): /api/v1/preview/frame 사진을 토큰과 함께 계속 받아 온다
+ * 첫 프레임이 오기 전이나 영상이 없으면 [placeholder] 를 보여준다.
  */
 @Composable
 fun MjpegPreview(
     url: String,
     modifier: Modifier = Modifier,
+    token: String = "",
+    snapshot: Boolean = false,
     placeholder: @Composable () -> Unit = {},
 ) {
     var frame by remember(url) { mutableStateOf<ImageBitmap?>(null) }
 
-    LaunchedEffect(url) {
+    LaunchedEffect(url, token, snapshot) {
         withContext(Dispatchers.IO) {
             while (isActive) {
                 try {
+                    if (snapshot) {
+                        val bmp = readSnapshot(url, token)
+                        if (bmp != null) frame = bmp.asImageBitmap()
+                        delay(if (bmp != null) 200 else 1000)
+                        continue
+                    }
                     readMjpeg(url) { bmp -> frame = bmp.asImageBitmap() }
                 } catch (_: Exception) {
                 }
@@ -56,6 +66,17 @@ fun MjpegPreview(
         )
     } else {
         placeholder()
+    }
+}
+
+/** JPEG 한 장. 미리보기가 꺼져 있으면(404) null */
+private fun readSnapshot(url: String, token: String): Bitmap? {
+    val req = Request.Builder().url(url)
+    if (token.isNotBlank()) req.header("Authorization", "Bearer $token")
+    Http.client.newCall(req.build()).execute().use { resp ->
+        if (!resp.isSuccessful) return null
+        val bytes = resp.body?.bytes() ?: return null
+        return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
     }
 }
 
