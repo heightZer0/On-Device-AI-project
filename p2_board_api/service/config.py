@@ -7,8 +7,9 @@ DEFAULTS = {
     "server": {"host": "0.0.0.0", "port": 8000},
     "speak_url": "http://127.0.0.1:8081",
     "llm_url": "http://127.0.0.1:8080/v1/chat/completions",
-    "llm_model": "bajahoe",  # PLACEHOLDER
-    "llm_timeout_sec": 10,
+    "llm_model": "rkllm",
+    "llm_system_prompt": "",
+    "llm_timeout_sec": 30,
     "tts_wait_timeout_sec": 10,
     "auth": {"enabled": True, "token_env": "BAJAHOE_DEVICE_TOKEN"},
     "rate_limit": {"per_client_per_sec": None},  # TODO(실험)

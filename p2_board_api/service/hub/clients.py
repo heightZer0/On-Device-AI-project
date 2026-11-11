@@ -32,15 +32,20 @@ class HttpSpeakClient:
 
 
 class HttpLLMClient:
-    def __init__(self, url, model, timeout):
+    def __init__(self, url, model, timeout, system_prompt=""):
         self.url, self.model, self.timeout = url, model, timeout
+        self.system_prompt = system_prompt
 
     def complete(self, utterance):
         try:
+            messages = []
+            if self.system_prompt:
+                messages.append({"role": "system", "content": self.system_prompt})
+            messages.append({"role": "user", "content": utterance})
             r = httpx.post(self.url, timeout=self.timeout, json={
                 "model": self.model, "stream": False,
                 "temperature": 0, "top_k": 1, "enable_thinking": False, "max_tokens": 64,
-                "messages": [{"role": "user", "content": utterance}]})
+                "messages": messages})
         except httpx.TimeoutException as e:
             raise LLMTimeout() from e
         except httpx.HTTPError as e:
@@ -61,6 +66,14 @@ class HttpLLMClient:
         base = self.url.split("/v1/")[0]
         try:
             r = httpx.get(base + "/health", timeout=1.0)
+            if r.status_code == 200:
+                return "ready"
+            # rkllm-board exposes /v1/models but does not implement /health.
+            r = httpx.get(base + "/v1/models", timeout=1.0)
             return "ready" if r.status_code == 200 else "error"
         except httpx.HTTPError:
-            return "error"
+            try:
+                r = httpx.get(base + "/v1/models", timeout=1.0)
+                return "ready" if r.status_code == 200 else "error"
+            except httpx.HTTPError:
+                return "error"

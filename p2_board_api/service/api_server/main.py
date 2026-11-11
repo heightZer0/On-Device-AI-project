@@ -27,7 +27,7 @@ def build():
     processor = p4
     phrases, words = load_yaml(cfg["phrases_path"]), load_yaml(cfg["part_words_path"])["parts"]
     speak = HttpSpeakClient(cfg["speak_url"], cfg["tts_wait_timeout_sec"])
-    llm = HttpLLMClient(cfg["llm_url"], cfg["llm_model"], cfg["llm_timeout_sec"])
+    llm = HttpLLMClient(cfg["llm_url"], cfg["llm_model"], cfg["llm_timeout_sec"], cfg["llm_system_prompt"])
     hub = Hub(cfg, PostureEngine(), Store(cfg["storage"]["json_path"]), speak, llm, phrases)
     cmd = CommandService(hub, llm, processor, phrases, words)
     return create_app(hub, cmd, cfg, background=True, mdns=Mdns(cfg)), cfg
