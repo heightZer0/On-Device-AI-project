@@ -112,11 +112,26 @@ class _Failure(Exception):
         self.reason = reason
 
 
+_TENS = {"열": 10, "스물": 20, "스무": 20, "서른": 30, "마흔": 40, "쉰": 50,
+         "예순": 60, "일흔": 70, "여든": 80, "아흔": 90}
+_UNITS = {"한": 1, "하나": 1, "두": 2, "둘": 2, "세": 3, "셋": 3, "네": 4, "넷": 4,
+          "다섯": 5, "여섯": 6, "일곱": 7, "여덟": 8, "아홉": 9}
+
+
 def _duration_value(text: str) -> int | None:
     native = {"한": 1, "하나": 1, "두": 2, "둘": 2, "세": 3, "셋": 3,
               "네": 4, "넷": 4, "다섯": 5, "여섯": 6, "일곱": 7, "여덟": 8, "아홉": 9, "열": 10}
     digits = {"일": 1, "이": 2, "삼": 3, "사": 4, "오": 5, "육": 6,
               "칠": 7, "팔": 8, "구": 9}
+    if text == "영":
+        return 0
+    for tens, value in sorted(_TENS.items(), key=lambda item: -len(item[0])):
+        if text.startswith(tens):
+            rest = text[len(tens):]
+            if not rest:
+                return value
+            if rest in _UNITS:
+                return value + _UNITS[rest]
     if text.isdigit():
         return int(text)
     if text in native:
@@ -138,7 +153,11 @@ def _duration_value(text: str) -> int | None:
     return total + section + number
 
 
-_DURATION_ATOM = r"[0-9]+|하나|한|둘|두|셋|세|넷|네|다섯|여섯|일곱|여덟|아홉|열|[일이삼사오육칠팔구십백]+"
+_DURATION_ATOM = (
+    r"[0-9]+|(?:열|스물|스무|서른|마흔|쉰|예순|일흔|여든|아흔)"
+    r"(?:하나|한|둘|두|셋|세|넷|네|다섯|여섯|일곱|여덟|아홉)?"
+    r"|하나|한|둘|두|셋|세|넷|네|다섯|여섯|일곱|여덟|아홉|영|[일이삼사오육칠팔구십백]+"
+)
 
 
 def parse_duration_minutes(utterance: str) -> int | None:
@@ -433,6 +452,9 @@ def process(raw: str, services, *, utterance: str | None = None,
             normalized = re.sub(r"\s+", "", utterance)
             guard = _load_yaml(SCHEMA_DIR / "out_of_scope.yaml")
             words = guard.get(parsed.function, [])
+            neg = "|".join(re.escape(word) for word in sorted(words, key=len, reverse=True))
+            if neg:
+                normalized = re.sub(rf"(?:{neg})(?:말고|이?아니라|은?빼고|는?빼고)", "", normalized)
             if any(word in normalized for word in words):
                 raise _Failure("UNSUPPORTED", reason="general", message_key="out_of_scope")
         validated = _validate(parsed, raw.strip(), services, schema)

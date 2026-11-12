@@ -16,7 +16,7 @@ TOKEN = "test-token"
 def make(calibrated=False, db=":memory:", **cfg_over):
     cfg = load_config()
     cfg["auth"] = {"enabled": True, "token": TOKEN, "token_env": "X"}
-    cfg["storage"]["sqlite_path"] = db
+    cfg["storage"]["json_path"] = db
     cfg.update(cfg_over)
     phrases, words = load_yaml(cfg["phrases_path"]), load_yaml(cfg["part_words_path"])["parts"]
     eng, spk, llm, proc, store = FakeEngine(calibrated), FakeSpeak(), FakeLLM(), FakeProcessor(), Store(db)

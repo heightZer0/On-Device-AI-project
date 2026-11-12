@@ -3,8 +3,8 @@ import os
 import threading
 import time
 
+import httpx
 import numpy as np
-import requests
 import yaml
 from fastapi.testclient import TestClient
 
@@ -173,7 +173,8 @@ def test_p2_200_returns_tts_text_and_body_shape():
     assert out == "먼저 기준 자세를 설정해 주세요"
     url, body = http.posts[0]
     assert url.endswith(":8000/api/v1/command")
-    assert body == {"source": "voice", "utterance": "지금 내 자세 어때", "confidence": None}
+    assert body["source"] == "voice" and body["utterance"] == "지금 내 자세 어때"
+    assert body["confidence"] is None and body["request_id"] and body["conversation_id"]
 
 
 def test_p2_errors_read_error_message():
@@ -183,7 +184,7 @@ def test_p2_errors_read_error_message():
 
 
 def test_p2_connection_failure_uses_fallback():
-    http = FakeHttp(exc=requests.ConnectionError())
+    http = FakeHttp(exc=httpx.ConnectError("offline", request=httpx.Request("POST", "http://p2.test")))
     assert agent_with(http)._call_p2("가") == load_cfg()["fallback_phrases"]["p2_down"]
 
 

@@ -1,7 +1,7 @@
 sherpa-onnx
 sounddevice
 numpy
-requests
+httpx
 pyyaml
 fastapi
 uvicorn

@@ -17,8 +17,8 @@ import time
 import uuid
 from typing import Optional
 
+import httpx
 import numpy as np
-import requests
 
 log = logging.getLogger("voice.agent")
 
@@ -41,7 +41,7 @@ class DisabledAgent:
 
 
 class VoiceAgent(threading.Thread):
-    def __init__(self, cfg: dict, mic, vad, stt, speaker, http=requests):
+    def __init__(self, cfg: dict, mic, vad, stt, speaker, http=httpx):
         super().__init__(daemon=True, name="voice-agent")
         self._cfg = cfg
         self._mic, self._vad, self._stt, self._speaker, self._http = mic, vad, stt, speaker, http
@@ -155,7 +155,7 @@ class VoiceAgent(threading.Thread):
         fb = self._cfg["fallback_phrases"]["p2_down"]
         try:
             r = self._http.post(url, json=body, headers=self._p2_headers(), timeout=timeout)
-        except requests.RequestException:
+        except httpx.RequestError:
             return fb                              # 연결 실패/타임아웃
         try:
             data = r.json()

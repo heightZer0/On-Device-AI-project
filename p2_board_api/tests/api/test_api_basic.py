@@ -24,7 +24,8 @@ def test_unavailable_clears_indicators(env):
 
 
 def test_session_current_null_and_history_empty(env):
-    assert env.c.get("/api/v1/session/current").json() is None
+    current = env.c.get("/api/v1/session/current").json()
+    assert current["session_id"] is None and current["sitting_sec"] == 0
     h = env.c.get("/api/v1/session/history").json()
     assert h["items"] == [] and h["total"] == 0
 
@@ -77,24 +78,24 @@ def test_T09_debug_mode_exposes_S(env):
 
 
 def test_T14_settings_validation_and_propagation(env):
-    r = env.c.put("/api/v1/settings", json={"tts_volume": 30, "alert_interval_sec": 60,
-                                            "posture_sensitivity": 4, "microphone_enabled": False})
+    r = env.c.put("/api/v1/settings", json={"tts_volume": 0.3, "alert_interval_sec": 60,
+                                            "posture_sensitivity": "high", "microphone_enabled": False})
     assert r.status_code == 200
-    assert env.eng.runtime["alert_interval_sec"] == 60 and env.eng.runtime["posture_sensitivity"] == 4
+    assert env.eng.runtime["alert_interval_sec"] == 60 and env.eng.runtime["posture_sensitivity"] == "high"
     assert env.spk.mic is False
     for bad in ({"unknown": 1}, {"tts_volume": 999}, {"tts_volume": True}, {"debug_mode": "yes"},
                 {"preview_stream_enabled": True}):
         r = env.c.put("/api/v1/settings", json=bad)
         assert r.status_code == 400, bad
-    assert env.c.get("/api/v1/settings").json()["tts_volume"] == 30     # 거부된 요청은 반영 안 됨
+    assert env.c.get("/api/v1/settings").json()["settings"]["tts_volume"] == 0.3  # 거부된 요청은 반영 안 됨
 
 
 def test_settings_persist_across_restart(tmp_path):
-    db = str(tmp_path / "t.db")
-    a = make(db=db)
-    a.c.put("/api/v1/settings", json={"tts_volume": 12})
-    b = make(db=db)
-    assert b.c.get("/api/v1/settings").json()["tts_volume"] == 12
+    store_dir = str(tmp_path / "store")
+    a = make(db=store_dir)
+    a.c.put("/api/v1/settings", json={"tts_volume": 0.12})
+    b = make(db=store_dir)
+    assert b.c.get("/api/v1/settings").json()["settings"]["tts_volume"] == 0.12
 
 
 def test_health_degraded(env):

@@ -6,4 +6,5 @@ pydantic>=2
 # P1's MediaPipeSource uses the legacy mp.solutions.pose API.
 mediapipe==0.10.21
 pytest
-# optional: zeroconf   (mDNS 광고)
+openpyxl
+zeroconf

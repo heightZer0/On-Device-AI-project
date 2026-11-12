@@ -8,7 +8,6 @@ P1 자세 분석, P2 REST 서버·세션 저장, P3 음성 파이프라인, P4 �
 |---|---|
 | `desk_pacemaker_p1_v1/` | 웹캠 프레임에서 귀·어깨 상대 위치를 분석하고 캘리브레이션 기준을 계산 |
 | `p2_board_api/` | FastAPI, 인증, 캘리브레이션·모니터링·세션 API, JSON 저장, P4 명령 처리 |
-| `P3_TTS/` | 별도 음성 서비스 복사본 |
 | `p2_board_api/service/voice_agent/` | P2와 연결되는 VAD/STT/TTS 서비스 |
 | `On-Device-AI-project-app/` | Android 앱.
 
@@ -26,7 +25,7 @@ python -m pip install -r requirements.txt
 
 P2 `requirements.txt`는 P1 코드가 쓰는 MediaPipe `mp.solutions.pose` API 버전을 고정합니다. 현재 P1 카메라 분석에 필요한 OpenCV는 이 MediaPipe 설치가 제공하는 `opencv-contrib-python`을 사용합니다. 별도 설치 파일의 `opencv-python`을 같은 가상환경에 추가로 설치하면 OpenCV/NumPy 의존성 경고가 발생할 수 있습니다.
 
-실제 환경에서 STT/TTS도 실행하려면 별도 터미널에서 다음 의존성을 설치하고 P3 서비스를 시작합니다. 음성 모델 파일은 팀에서 받은 뒤 `service/voice_agent/config.yaml`의 경로에 배치해야 합니다.
+실제 환경에서 STT/TTS도 실행하려면 별도 터미널에서 다음 의존성을 설치하고 음성 서비스를 시작합니다. 음성 모델 파일은 팀에서 받은 뒤 `service/voice_agent/config.yaml`의 경로에 배치해야 합니다.
 
 ```powershell
 cd C:\path\to\mobilesystem\p2_board_api
@@ -37,6 +36,20 @@ python -m service.voice_agent.main
 ```
 
 LLM 명령 실행에는 `config/api.yaml`의 `llm_url`과 `llm_model`에 맞는 OpenAI 호환 서버가 필요합니다. STT/TTS/LLM 서비스가 없으면 `/health`에 `degraded`와 해당 모듈 오류가 표시될 수 있습니다. 이는 웹캠 자세 분석과 별개입니다.
+
+## Orange Pi LLM 연결
+
+`rkllm-board` 패키지의 RKLLM 서버를 사용합니다. 모델 파일과 같은 폴더에 `.rkllm.json` 사이드카도 복사해야 합니다. P2와 RKLLM 서버가 같은 보드면 `llm_url`은 `127.0.0.1:8080`을, 다른 컴퓨터에서 P2를 실행하면 Orange Pi 주소를 가리키게 설정합니다. P2는 `config/api.yaml`의 V11 `llm_system_prompt`를 LLM 요청에 포함합니다.
+
+평가 및 양자화 쿼리 준비 도구는 `p2_board_api/tools/eval_board.py`와 `make_queries.py`입니다. 평가에는 Eval, Boundary, 신규 표현 시트를 별도로 보고하고, 캘리브레이션 쿼리는 Train 분할만 사용합니다. P2 폴더에서 실행하세요.
+
+```powershell
+cd C:\path\to\mobilesystem\p2_board_api
+python tools/make_queries.py "C:\\path\\LLM 최종 데이터셋.xlsx" --output data/queries.json
+python tools/eval_board.py "C:\\path\\LLM 최종 데이터셋.xlsx" --board-url http://127.0.0.1:8080/v1/chat/completions
+```
+
+보드 카메라 인덱스와 MediaPipe 복잡도는 `desk_pacemaker_p1_v1/config/posture.yaml`의 `camera_index`와 `model_complexity`에서 조절합니다. 보드의 카메라 장치를 확인한 뒤 인덱스를 정하고, 느린 경우에만 복잡도를 0으로 낮춰 비교하세요.
 
 ## P2 서버 시작
 

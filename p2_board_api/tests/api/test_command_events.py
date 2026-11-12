@@ -24,7 +24,7 @@ def test_utterance_goes_through_llm_and_processor(env):
 def test_invalid_llm_output_not_ok_but_200(env):
     env.llm.out = "자세가 좋아 보여요"
     r = env.c.post(C, json={"source": "voice", "utterance": "x"})
-    assert r.status_code == 200 and r.json()["ok"] is False and r.json()["code"] == "INVALID_FORMAT"
+    assert r.status_code == 422 and r.json()["error"]["code"] == "INVALID_LLM_COMMAND"
 
 
 def test_T06_llm_timeout_and_down(env):
@@ -41,56 +41,58 @@ def test_T06_llm_timeout_and_down(env):
 def test_processor_exception_returns_error_code(env):
     env.proc.process = lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom"))
     j = env.c.post(C, json={"source": "app", "command": POSTURE}).json()
-    assert j["code"] == "ERROR" and j["ok"] is False and j["tts_text"]
+    assert j["error"]["code"] == "INTERNAL_ERROR" and j["error"]["details"]["tts_text"]
 
 
 def test_T07_clarify_then_part(env):
     env.llm.out = '<clarify>(command="body_part")<suda_end>'
     j = env.c.post(C, json={"source": "voice", "utterance": "스트레칭 알려줘"}).json()
-    assert j["result"] == {} and "어느 부위" in j["tts_text"]
+    assert j["result"]["awaiting"] == "body_part" and "어느 부위" in j["tts_text"]
     env.llm.calls = 0
     env.c.post(C, json={"source": "voice", "utterance": "목이요"})
     assert env.proc.calls[-1] == '<stretch>(command="recommend", part="1")<suda_end>'
     assert env.llm.calls == 0                                          # 후속 발화는 LLM 을 거치지 않음
-    assert env.cmd.conv is None
+    assert env.cmd.conversations["default"]["pending_clarification"] is None
 
 
 def test_T07_clarify_ttl_expiry(env):
     env.llm.out = '<clarify>(command="body_part")<suda_end>'
     env.c.post(C, json={"source": "voice", "utterance": "스트레칭"})
-    env.clock.t = 11                                                    # TTL(10초) 경과
+    env.clock.t = 31                                                    # TTL(30초) 경과
     env.llm.out = POSTURE
-    env.c.post(C, json={"source": "voice", "utterance": "목"})
-    assert env.llm.calls == 2 and not env.proc.calls[-1].startswith("<stretch>")   # 일반 흐름으로 처리
+    response = env.c.post(C, json={"source": "voice", "utterance": "목"})
+    assert response.status_code == 408 and response.json()["error"]["code"] == "CLARIFICATION_TIMEOUT"
+    assert env.llm.calls == 1 and env.cmd.conversations["default"]["pending_clarification"] is None
 
 
 def test_T07_unrelated_reask_once_then_release(env):
     env.llm.out = '<clarify>(command="body_part")<suda_end>'
     env.c.post(C, json={"source": "voice", "utterance": "스트레칭"})
     env.llm.out = POSTURE
-    j = env.c.post(C, json={"source": "voice", "utterance": "응?"}).json()
-    assert j["code"] == "BAD_PARAM" and "어느 부위" in j["tts_text"]
+    response = env.c.post(C, json={"source": "voice", "utterance": "응?"})
+    assert response.status_code == 200 and response.json()["result"]["awaiting"] == "body_part"
     assert env.llm.calls == 1                                           # 재질문은 LLM 호출 없음
-    env.c.post(C, json={"source": "voice", "utterance": "응?"})         # 두 번째 무관 발화 → 해제 후 LLM
-    assert env.llm.calls == 2 and env.cmd.conv is None
+    response = env.c.post(C, json={"source": "voice", "utterance": "응?"})
+    assert response.status_code == 408 and response.json()["error"]["code"] == "CLARIFICATION_TIMEOUT"
+    assert env.llm.calls == 1 and env.cmd.conversations["default"]["pending_clarification"] is None
 
 
 def test_part_ambiguous_asks_again(env):
     env.llm.out = '<clarify>(command="body_part")<suda_end>'
     env.c.post(C, json={"source": "voice", "utterance": "스트레칭"})
     j = env.c.post(C, json={"source": "voice", "utterance": "목이랑 어깨"}).json()
-    assert j["code"] == "BAD_PARAM"
+    assert j["ok"] and j["result"]["awaiting"] == "body_part"
 
 
 def test_confirm_minutes_yes_and_no(env):
-    env.llm.out = '<break>(command="ask")<suda_end>'
+    env.llm.out = '<clarify>(command="time")<suda_end>'
     env.c.post(C, json={"source": "voice", "utterance": "쉬라고 알려줘"})
-    j = env.c.post(C, json={"source": "voice", "utterance": "응"}).json()
-    assert env.proc.calls[-1] == '<break>(command="set_alarm", minutes="30")<suda_end>' and j["ok"]
+    j = env.c.post(C, json={"source": "voice", "utterance": "30분 뒤"}).json()
+    assert env.proc.calls[-1] == '<break>(command="set_alarm", minutes="N")<suda_end>' and j["ok"]
     assert env.hub.get_break_status()["set"] is True
     env.hub._break_timer.cancel()
     env.c.post(C, json={"source": "voice", "utterance": "쉬라고 알려줘"})
-    j = env.c.post(C, json={"source": "voice", "utterance": "아니"}).json()
+    j = env.c.post(C, json={"source": "voice", "utterance": "취소"}).json()
     assert j["ok"] and j["result"] == {"cancelled": True}
 
 
@@ -121,7 +123,7 @@ def test_T11_attention_speaks_only_when_monitoring_and_enabled(env):
     assert env.spk.spoken == []
     env.c.post("/api/v1/monitoring/start")
     env.eng.emit("attention_started")
-    assert len(env.spk.spoken) == 1 and env.spk.spoken[0][1] == "alert" and env.spk.spoken[0][2] == 70
+    assert len(env.spk.spoken) == 1 and env.spk.spoken[0][1] == "alert" and env.spk.spoken[0][2] == 0.7
     assert "턱을 살짝" in env.spk.spoken[0][0]
     env.c.put("/api/v1/settings", json={"voice_feedback_enabled": False})
     env.eng.emit("attention_started")
@@ -164,12 +166,18 @@ def test_break_alarm_replace_policy_and_expiry(env):
     e2.hub._break_timer.cancel()
 
 
-def test_event_log_flag_default_off(env):
+def test_event_log_flag_default_off(tmp_path):
+    from pathlib import Path
+    import json
+
+    env = make(calibrated=True, db=str(tmp_path))
+    events_path = Path(tmp_path) / "events.jsonl"
     env.eng.emit("attention_started")
-    assert env.store._q("SELECT COUNT(*) n FROM events")[0]["n"] == 0
+    assert not events_path.exists()
     env.c.put("/api/v1/settings", json={"event_log_enabled": True})
     env.eng.emit("attention_started")
-    assert env.store._q("SELECT COUNT(*) n FROM events")[0]["n"] == 1
+    events = [json.loads(line) for line in events_path.read_text(encoding="utf-8").splitlines()]
+    assert len(events) == 1 and events[0]["type"] == "attention_started"
 
 
 def test_rate_limit_429_when_configured():

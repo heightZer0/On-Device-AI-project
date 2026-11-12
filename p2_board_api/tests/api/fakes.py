@@ -32,7 +32,7 @@ class FakeEngine:
             s["debug"] = {"shoulder_screen_shift": 0.05, "validated": False}
         return s
 
-    def begin_calibration(self): self.calls.append("begin_cal"); return {"ear_detected": True, "shoulder_detected": True}
+    def begin_calibration(self, duration_sec=None): self.calls.append("begin_cal"); return {"ear_detected": True, "shoulder_detected": True}
     def preview_calibration(self): return {"H_base": 0.1, "L_ref_fixed": 80.0, "side": "left", "d": 1}
     def confirm_calibration(self): self.calibration = {"H_base": 0.1}; return {"H_base": 0.1, "side": "left", "d": 1}
     def get_calibration(self): return self.calibration
@@ -45,7 +45,7 @@ class FakeEngine:
 
 class FakeSpeak:
     def __init__(self):
-        self.spoken, self.fail, self.mic, self.st = [], False, None, {"stt": "ready", "tts": "ready"}
+        self.spoken, self.fail, self.mic, self.st, self.settings = [], False, None, {"stt": "ready", "tts": "ready"}, {}
 
     def speak(self, text, kind, volume):
         if self.fail:
@@ -54,6 +54,7 @@ class FakeSpeak:
 
     def warmup(self, texts): self.warm = texts
     def set_mic(self, e): self.mic = e
+    def set_settings(self, settings): self.settings = dict(settings)
     def state(self): return self.st
 
 
@@ -81,16 +82,21 @@ class FakeProcessor:
         self.calls.append(raw)
         m = _FMT.match(raw.strip())
         if not m:
-            return {"code": "INVALID_FORMAT", "result": {}, "tts_text": "다시 말씀해 주세요."}
+            return {"success": False, "code": "INVALID_FORMAT", "result": {}, "tts_text": "다시 말씀해 주세요."}
         fn, args = m.groups()
         if fn == "clarify":
-            return {"code": "OK", "result": {}, "tts_text": "어느 부위 스트레칭을 알려 드릴까요?", "pending": {"type": "part"}}
+            kind = "time" if '"time"' in args else "intent" if '"intent"' in args else "body_part"
+            text = {"time": "몇 분 뒤로 설정할까요?", "intent": "자세를 확인할까요, 스트레칭을 안내할까요?",
+                    "body_part": "어느 부위 스트레칭을 알려 드릴까요?"}[kind]
+            return {"success": True, "code": "OK", "result": {"awaiting": kind},
+                    "intent": f"clarify_{kind}", "tts_text": text}
         if fn == "monitor":
             r = services.monitoring_start() if 'start' in args else services.monitoring_stop()
-            return {"code": "OK", "result": r, "tts_text": "알겠어요."}
-        if fn == "break" and "ask" in args:
-            return {"code": "OK", "result": {}, "tts_text": "30분 뒤에 알려 드릴까요?", "pending": {"type": "confirm_minutes", "minutes": 30}}
+            return {"success": True, "code": "OK", "result": r, "tts_text": "알겠어요."}
         if fn == "break" and "set_alarm" in args:
-            mm = int(re.search(r'minutes="(\d+)"', args).group(1))
-            return {"code": "OK", "result": services.set_break_alarm(mm), "tts_text": f"{mm}분 뒤에 알려 드릴게요."}
-        return {"code": "OK", "result": {"args": args}, "tts_text": "현재는 머리 상대 위치 기준으로 확인한 결과예요."}
+            from command import parse_duration_minutes
+            mm = parse_duration_minutes(utterance or "")
+            if mm is None:
+                return {"success": False, "code": "INVALID_FORMAT", "result": {}, "tts_text": "시간을 확인해 주세요."}
+            return {"success": True, "code": "OK", "result": services.set_break_alarm(mm), "tts_text": f"{mm}분 뒤에 알려 드릴게요."}
+        return {"success": True, "code": "OK", "result": {"args": args}, "tts_text": "현재는 머리 상대 위치 기준으로 확인한 결과예요."}

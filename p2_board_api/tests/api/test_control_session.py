@@ -77,7 +77,8 @@ def test_T03_request_id_dedup(env):
     b = env.c.post(P + "monitoring/start", json={"request_id": "r1"}).json()
     assert a == b and env.hub.state == "IDLE"   # 재실행되지 않고 저장된 응답 반환
     assert env.eng.calls.count("start") == 1
-    assert len(env.store._q("SELECT id FROM sessions")) == 1
+    rows, total = env.store.list_sessions(10, 0)
+    assert total == 1 and len(rows) == 1
     r = env.c.post(P + "monitoring/pause", json={"request_id": "r1"})   # 다른 엔드포인트에 같은 id
     assert r.status_code == 400 and r.json()["request_id"] == "r1"
 
@@ -130,20 +131,20 @@ def test_history_newest_first(env):
     h = env.c.get(P + "session/history?limit=2").json()
     assert h["total"] == 3 and len(h["items"]) == 2
     assert h["items"][0]["started_at"] >= h["items"][1]["started_at"]
-    assert {"session_id", "sitting_sec", "monitoring_sec", "state_durations", "warning_count"} <= set(h["items"][0])
+    assert {"session_id", "sitting_sec", "monitoring_sec", "normal_sec", "attention_sec", "unavailable_sec", "warning_count"} <= set(h["items"][0])
     assert env.c.get(P + "session/history?limit=0").status_code == 400
 
 
 def test_T13_checkpoint_and_crash_recovery(tmp_path):
-    db = str(tmp_path / "c.db")
-    a = make(calibrated=True, db=db)
+    store_dir = str(tmp_path / "store")
+    a = make(calibrated=True, db=store_dir)
     a.c.post(P + "monitoring/start")
     for _ in range(31):
         a.hub.tick(1000)                    # 30초 체크포인트 경과
     sid = a.hub.session.session_id
     row = a.store.get_session(sid)
     assert row["monitoring_sec"] >= 30 and row["ended_at"] is None
-    b = make(calibrated=True, db=db)        # 비정상 종료 후 재부팅
+    b = make(calibrated=True, db=store_dir)  # 비정상 종료 후 재부팅
     row = b.store.get_session(sid)
     assert row["ended_at"] is not None and row["monitoring_sec"] >= 30
-    assert b.hub.last_session["session_id"] == sid and b.hub.get_session() is None
+    assert b.hub.last_session["session_id"] == sid and b.hub.get_session()["session_id"] is None
