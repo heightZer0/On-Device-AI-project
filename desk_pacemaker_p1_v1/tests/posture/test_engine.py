@@ -66,6 +66,10 @@ def test_full_flow_calibrate_confirm_monitor_alert(tmp_path):
     src.H = 0.5                                                    # 기준보다 전방
     for _ in range(80):
         eng.step()
+    # Engine callbacks are dispatched on a worker thread to avoid lock inversion.
+    deadline = time.monotonic() + 1.0
+    while not events and time.monotonic() < deadline:
+        time.sleep(0.01)
     assert [e["type"] for e in events] == ["attention_started"]
     assert eng.get_state()["state"] == "attention"
     assert set(src.requested) == {("left",)}                       # 모니터링 중에는 고정된 side 만 요청
@@ -116,7 +120,7 @@ def test_control_is_idempotent_and_paused_reads_nothing(tmp_path):
     assert eng.pause() == "stopped" and eng.resume() == "stopped"
 
 
-def test_debug_flag_controls_S_exposure(tmp_path):
+def test_debug_flag_does_not_expose_S_in_state(tmp_path):
     eng, src, _ = make_engine(tmp_path)
     calibrate(eng)
     eng.confirm_calibration()
@@ -127,7 +131,9 @@ def test_debug_flag_controls_S_exposure(tmp_path):
     eng.set_debug(True)
     for _ in range(5):
         eng.step()
-    assert "shoulder_screen_shift" in eng.get_state()["debug"]
+    assert eng.get_state()["debug"]["validated"] is False
+    assert "shoulder_screen_shift" not in eng.get_state()["debug"]
+    assert eng._analyzer.metrics()["S"] is not None
 
 
 def test_nothing_but_calibration_json_is_written(tmp_path):

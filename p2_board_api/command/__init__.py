@@ -164,6 +164,8 @@ _DURATION_ATOM = (
 def parse_duration_minutes(utterance: str) -> int | None:
     """Extract duration expressions; clock times such as '3시에' are ignored."""
     compact = re.sub(r"\s+", "", utterance or "")
+    # Deictic "이 시간(에)" means "at this time", not the numeral two hours.
+    compact = re.sub(r"(?<![가-힣])(?:이|그|저)시간(?:에|쯤)?", "", compact)
     # Do not consume the "시" in duration words such as "두시간".
     clock_pattern = re.compile(rf"(?<![가-힣0-9])(?:{_DURATION_ATOM})시(?!간)(?:{_DURATION_ATOM}분)?(?:에|부터|쯤)?")
     compact = clock_pattern.sub("", compact)
@@ -280,6 +282,13 @@ def _validate(parsed: ParsedCommand, raw: str, services, schema: dict) -> Valida
             raise _Failure("INVALID_LLM_COMMAND", reason="invalid_parameter")
 
     pre = set(spec.get("prereq", []))
+    # Calibration is a distinct state in the API contract. Check it before
+    # calibration/camera prerequisites so a voice start request cannot be
+    # misreported as CALIBRATION_REQUIRED or CAMERA_NOT_READY.
+    state = getattr(services, "state", None)
+    if (parsed.function, parsed.command) == ("monitor", "start") and state == "CALIBRATING":
+        raise _Failure("PRECONDITION", precondition="INVALID_STATE", reason="calibrating",
+                       message_key="INVALID_STATE")
     if (parsed.function, parsed.command) == ("monitor", "pause") and getattr(services, "state", None) != "MONITORING":
         state = getattr(services, "state", None)
         raise _Failure("PRECONDITION", precondition="INVALID_STATE", reason="state_paused" if state == "PAUSED" else "state_idle", message_key="INVALID_STATE")
@@ -440,6 +449,10 @@ def _execute(command: ValidatedCommand, services, phrases: dict, conversation: d
 def process(raw: str, services, *, utterance: str | None = None,
             options: Options | dict | None = None, conversation: dict | None = None) -> dict:
     """Parse → guard → validate → execute. Compatible with P2 service handles."""
+    # Import here so the parser can still be imported by tools independently
+    # of the API server, while preserving P2 errors raised during execution.
+    from service.api_server.errors import ApiError
+
     schema = _schema()
     phrases = _phrases()
     if options is None:
@@ -500,6 +513,16 @@ def process(raw: str, services, *, utterance: str | None = None,
             result["reason"] = failure.reason
         return _result(failure.code == "OK", failure.code, text, result=result,
                        precondition=failure.precondition, pending=pending)
+    except ApiError as error:
+        # Hub state can change after validation (e.g. calibration starts in
+        # the meantime). Keep the API's structured precondition so the route
+        # maps it to the matching HTTP status and external error code.
+        details = dict(error.details or {})
+        if error.code == "INVALID_STATE" and "reason" not in details:
+            state = getattr(services, "state", None)
+            details["reason"] = "calibrating" if state == "CALIBRATING" else "state_idle"
+        return _result(False, "PRECONDITION", error.message, result=details,
+                       precondition=error.code)
     except Exception as error:
         # Do not include utterances, raw model output, or exception bodies in logs/API.
         import logging

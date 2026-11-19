@@ -21,7 +21,7 @@ from posture.rules.config import load_config
 
 log = logging.getLogger(__name__)
 
-LOG_HEADER = ["ts", "subject", "note", "side", "d", "state", "reason", "H", "dH", "S", "confidence"]
+LOG_HEADER = ["ts", "subject", "note", "side", "d", "state", "reason", "H", "dH", "S", "confidence", "frame_age_ms"]
 
 
 class PostureEngine:
@@ -224,7 +224,8 @@ class PostureEngine:
     # ---------- 실험용 CSV 로그 (개발 전용) ----------
     def start_experiment_log(self, path: str, subject: str = "", note: str = ""):
         """프레임별 H·ΔH·S·상태를 CSV 로 남긴다 (0단계 실험 E3~E6용). 실험이 끝나면 파일을 삭제할 것.
-        영상·귀/어깨 좌표는 기록하지 않는다. 좌표가 필요하면 tools/h_logger.py 를 쓴다."""
+        영상·귀/어깨 좌표는 기록하지 않는다. frame_age_ms 는 프레임을 받은 뒤 분석 루프에 도달하기까지의 경과 시간이다.
+        좌표가 필요하면 tools/h_logger.py 를 쓴다."""
         with self._lock:
             self.stop_experiment_log()
             self._log_fh = open(path, "w", newline="", encoding="utf-8")
@@ -238,7 +239,7 @@ class PostureEngine:
                 self._log_fh.close()
             self._log_fh = self._log_w = None
 
-    def _write_log(self, obs: Obs):
+    def _write_log(self, obs: Obs, frame_age_ms=None):
         if self._log_w is None:
             return
         if self._log_t0 is None:
@@ -247,7 +248,8 @@ class PostureEngine:
         fmt = lambda v: "" if v is None else f"{v:.4f}"
         self._log_w.writerow([f"{obs.ts - self._log_t0:.3f}", *self._log_meta, cal.get("side", ""),
                               cal.get("d", ""), st["state"], st["reason"] or "",
-                              fmt(m["H"]), fmt(m["dH"]), fmt(m["S"]), st["confidence"]])
+                              fmt(m["H"]), fmt(m["dH"]), fmt(m["S"]), st["confidence"],
+                              "" if frame_age_ms is None else f"{frame_age_ms:.1f}"])
         self._log_n += 1
         if self._log_n % 30 == 0:
             self._log_fh.flush()
@@ -290,7 +292,11 @@ class PostureEngine:
             elif self._status == "running":
                 obs = self._to_obs(frame)
                 self._analyzer.update(obs)
-                self._write_log(obs)
+                # RawFrame.ts is assigned as soon as OpenCV returns the frame.
+                # This includes inference/loop delay, not the camera sensor's
+                # exposure timestamp (which OpenCV does not expose reliably).
+                frame_age_ms = (time.monotonic() - frame.ts) * 1000 if frame is not None else None
+                self._write_log(obs, frame_age_ms)
         return True
 
     def run_in_background(self):

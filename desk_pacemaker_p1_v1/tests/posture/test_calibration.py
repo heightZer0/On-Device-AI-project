@@ -71,7 +71,9 @@ def test_save_load_roundtrip_and_only_numbers_stored(tmp_path):
     path = str(tmp_path / "calibration.json")
     save_calibration(cal, path)
     assert load_calibration(path) == cal
-    assert set(json.load(open(path, encoding="utf-8"))) == set(CAL_KEYS)
+    stored = json.load(open(path, encoding="utf-8"))
+    assert set(stored) == set(CAL_KEYS) | {"schema_version"}
+    assert stored["schema_version"] == 1
     assert os.listdir(tmp_path) == ["calibration.json"]             # 영상·좌표 원본 없음, tmp 파일도 남지 않음
 
 

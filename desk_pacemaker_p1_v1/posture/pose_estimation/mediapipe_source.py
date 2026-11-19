@@ -16,6 +16,9 @@ _IDS = {
     "right": {"ear": 8, "shoulder": 12, "eye": 5},
 }
 _NOSE = 0
+# Read a small batch of pending camera frames and keep the newest one. A fixed
+# bound avoids an unending grab loop on live cameras.
+_LATEST_FRAME_GRABS = 3
 
 
 class MediaPipeSource:
@@ -65,7 +68,19 @@ class MediaPipeSource:
             self._last_try = now
             if not self._open():
                 return None
-        ok, frame = self._cap.read()
+        # read() can hand us an old queued frame when analysis is slower than
+        # the camera. Advance the capture queue a few frames, then decode only
+        # the newest one. This works with OpenCV backends that implement the
+        # usual grab/retrieve pair and keeps the operation bounded.
+        ok = False
+        for _ in range(_LATEST_FRAME_GRABS):
+            ok = self._cap.grab()
+            if not ok:
+                break
+        if ok:
+            ok, frame = self._cap.retrieve()
+        else:
+            frame = None
         if not ok:                                 # 프레임 끊김: 해제 후 재연결 시도
             self.status = "error"
             self._cap.release()

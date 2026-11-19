@@ -200,8 +200,9 @@ def test_debug_mode_exposes_S_only_there():
     f.a.debug = True
     st = f.feed(3, H=0.0)
     assert st["debug"]["validated"] is False
-    assert "shoulder_screen_shift" in st["debug"]
-    assert st["debug"]["shoulder_screen_shift"] == pytest.approx(0.0, abs=1e-9)
+    # S is available to experiment metrics, not in the state/API debug payload.
+    assert "shoulder_screen_shift" not in st["debug"]
+    assert f.a.metrics()["S"] == pytest.approx(0.0, abs=1e-9)
 
 
 def test_S_does_not_affect_decision():
