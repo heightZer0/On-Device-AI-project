@@ -1,0 +1,16 @@
+[Unit]
+Description=Bajahoe P3 voice service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=bajahoe
+WorkingDirectory=/opt/bajahoe/mobilesystem/p2_board_api
+EnvironmentFile=/etc/bajahoe.env
+ExecStart=/opt/bajahoe/mobilesystem/p2_board_api/.venv/bin/python -m service.voice_agent.main
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

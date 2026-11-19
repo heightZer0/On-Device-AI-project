@@ -32,6 +32,12 @@ class MediaPipeSource:
         idx = self.cfg.camera_index
         cap = cv2.VideoCapture(idx, cv2.CAP_DSHOW) if os.name == "nt" else cv2.VideoCapture(idx)
         if cap.isOpened():
+            # Keep the USB camera close to real time on resource-constrained boards.
+            # Unsupported properties are harmlessly ignored by OpenCV drivers.
+            cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
+            cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.cfg.camera_width)
+            cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.cfg.camera_height)
+            cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
             self._cap, self.status = cap, "ready"
             return True
         cap.release()

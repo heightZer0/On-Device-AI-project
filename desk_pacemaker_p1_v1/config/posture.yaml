@@ -25,6 +25,9 @@ unavailable_prolonged_sec: 10.0    # TODO(실험) unavailable_prolonged 이벤�
 recalib_suggest_count: 3           # TODO(실험) 측정 불가(T_reset 초과)가 이 횟수 반복되면 재캘리브레이션 안내
 recalib_window_sec: 300.0          # TODO(실험) 위 횟수를 세는 기간
 calibration_path: data/store/calibration.json
-camera_index: 1                    # 노트북 내장 캠이 0이면 외부 웹캠은 보통 1
+camera_index: 0                    # Orange Pi UVC 웹캠의 일반적 기본값; /dev/videoN 확인 후 조정
 camera_retry_sec: 2.0              # 카메라 끊김 후 재연결 시도 간격
 model_complexity: 1                # MediaPipe 0 lite / 1 full / 2 heavy
+camera_width: 640                  # 보드용 캡처 요청 해상도
+camera_height: 480
+camera_fps_limit: 10.0             # 임시 상한; P7 실험으로 조정

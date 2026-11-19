@@ -6,6 +6,7 @@ model server can be swapped through P2's llm_url/llm_model configuration.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 import re
 
@@ -58,12 +59,17 @@ def _load_yaml(path: Path) -> dict:
         return yaml.safe_load(f) or {}
 
 
+@lru_cache(maxsize=16)
+def _cached_yaml(path: str) -> dict:
+    return _load_yaml(Path(path))
+
+
 def _schema() -> dict:
-    return _load_yaml(SCHEMA_DIR / "commands.yaml")
+    return _cached_yaml(str(SCHEMA_DIR / "commands.yaml"))
 
 
 def _phrases() -> dict:
-    return _load_yaml(ROOT / "config" / "phrases_command.yaml")
+    return _cached_yaml(str(ROOT / "config" / "phrases_command.yaml"))
 
 
 def _parse(raw: str, require_suda_end: bool) -> ParsedCommand:
@@ -71,11 +77,6 @@ def _parse(raw: str, require_suda_end: bool) -> ParsedCommand:
     source = re.sub(r"\s+", "", source).strip()
     if not source:
         raise _Failure("INVALID_LLM_COMMAND", reason="empty")
-    if "\n" in source or "\r" in source:
-        # Distinguish an actual multi-command response from malformed multiline text.
-        if len(re.findall(r"<[a-z_]+>\([^()]*\)(?:<suda_end>)?", source)) > 1:
-            raise _Failure("MULTI_COMMAND")
-        raise _Failure("INVALID_LLM_COMMAND", reason="not_command_format")
     match = re.fullmatch(r"<(?P<fn>[a-z_]+)>\((?P<args>[^()]*)\)(?P<end><suda_end>)?", source)
     if not match:
         if len(re.findall(r"<[a-z_]+>\([^()]*\)(?:<suda_end>)?", source)) > 1:
@@ -163,6 +164,9 @@ _DURATION_ATOM = (
 def parse_duration_minutes(utterance: str) -> int | None:
     """Extract duration expressions; clock times such as '3시에' are ignored."""
     compact = re.sub(r"\s+", "", utterance or "")
+    # Do not consume the "시" in duration words such as "두시간".
+    clock_pattern = re.compile(rf"(?<![가-힣0-9])(?:{_DURATION_ATOM})시(?!간)(?:{_DURATION_ATOM}분)?(?:에|부터|쯤)?")
+    compact = clock_pattern.sub("", compact)
     parts = list(re.finditer(rf"(?P<h>{_DURATION_ATOM})시간(?P<half>반)?|(?P<m>{_DURATION_ATOM})분", compact))
     if "반시간" in compact:
         parts.append(re.search("반시간", compact))
@@ -192,7 +196,7 @@ def parse_duration_minutes(utterance: str) -> int | None:
 
 
 def _part_words() -> dict[str, list[str]]:
-    data = _load_yaml(SCHEMA_DIR / "part_words.yaml")
+    data = _cached_yaml(str(SCHEMA_DIR / "part_words.yaml"))
     return data.get("parts", {})
 
 
@@ -367,7 +371,7 @@ def _execute(command: ValidatedCommand, services, phrases: dict, conversation: d
                        result={"reason": category}, intent=command.intent, validated=command.raw)
 
     if fn == "stretch":
-        catalog = _load_yaml(ROOT / "config" / "stretch_exercises.yaml")
+        catalog = _cached_yaml(str(ROOT / "config" / "stretch_exercises.yaml"))
         exercises = catalog.get(str(p["part"]), [])
         context = conversation or {}
         last = context.get("last_stretch") or {}
@@ -395,7 +399,7 @@ def _execute(command: ValidatedCommand, services, phrases: dict, conversation: d
                                                   "steps": steps, "exercise_id": selected["id"]},
                        intent=command.intent, validated=command.raw)
 
-    if fn in ("sitting", "break") and action in ("time", "check"):
+    if fn == "sitting" and action == "time":
         current = services.get_session() or {}
         last = services.get_last_session()
         if current.get("session_id"):
@@ -404,9 +408,18 @@ def _execute(command: ValidatedCommand, services, phrases: dict, conversation: d
         else:
             duration = _duration_text((last or {}).get("sitting_sec", 0))
             text = phrases.get("sitting_previous", "직전 세션 착석 시간은 {duration}이에요.").format(duration=duration)
-        if fn == "break":
-            text = phrases.get("break_check", "현재 착석 시간은 {duration}이에요.").format(duration=duration)
         return _result(True, "OK", text, result={"sitting_sec": current.get("sitting_sec", (last or {}).get("sitting_sec", 0))},
+                       intent=command.intent, validated=command.raw)
+
+    if fn == "break" and action == "check":
+        current = services.get_session() or {}
+        sitting_sec = int(current.get("sitting_sec", 0))
+        if sitting_sec >= 3600:
+            text = phrases.get("break_check_recommend", "1시간 이상 앉아 있었어요. 잠깐 쉬면서 몸을 풀어 주세요.")
+        else:
+            duration = _duration_text(sitting_sec)
+            text = phrases.get("break_check_ok", "아직 괜찮아요. 현재 착석 시간은 {duration}이에요.").format(duration=duration)
+        return _result(True, "OK", text, result={"sitting_sec": sitting_sec},
                        intent=command.intent, validated=command.raw)
 
     if fn == "break" and action == "set_alarm":
@@ -440,26 +453,27 @@ def process(raw: str, services, *, utterance: str | None = None,
         raw = normalized_raw
         if parsed.function == "unsupported":
             normalized = re.sub(r"\s+", "", utterance or "")
-            medical = _load_yaml(SCHEMA_DIR / "out_of_scope.yaml").get("medical", [])
-            urgent = _load_yaml(SCHEMA_DIR / "out_of_scope.yaml").get("medical_urgent", [])
+            scope = _cached_yaml(str(SCHEMA_DIR / "out_of_scope.yaml"))
+            medical = scope.get("medical", [])
+            urgent = scope.get("medical_urgent", [])
             category = "medical_urgent" if any(w in normalized for w in urgent) else "medical" if any(w in normalized for w in medical) else "general"
             parsed = ParsedCommand(parsed.function, parsed.command, {"_category": category}, parsed.duplicate_params)
             groups = _functional_groups(utterance or "")
-            guard_mode = _load_yaml(ROOT / "config" / "api.yaml").get("multi_guard", "unsupported_only")
+            guard_mode = _cached_yaml(str(ROOT / "config" / "api.yaml")).get("multi_guard", "unsupported_only")
             if guard_mode != "off" and len(groups) >= 2:
                 raise _Failure("MULTI_COMMAND", reason="multiple_function_groups")
         if utterance and parsed.function != "unsupported":
             normalized = re.sub(r"\s+", "", utterance)
-            guard = _load_yaml(SCHEMA_DIR / "out_of_scope.yaml")
+            guard = _cached_yaml(str(SCHEMA_DIR / "out_of_scope.yaml"))
             words = guard.get(parsed.function, [])
             neg = "|".join(re.escape(word) for word in sorted(words, key=len, reverse=True))
             if neg:
                 normalized = re.sub(rf"(?:{neg})(?:말고|이?아니라|은?빼고|는?빼고)", "", normalized)
-            if any(word in normalized for word in words):
+            if neg and re.search(rf"(?<![가-힣])(?:{neg})", normalized):
                 raise _Failure("UNSUPPORTED", reason="general", message_key="out_of_scope")
         validated = _validate(parsed, raw.strip(), services, schema)
         if utterance:
-            cfg = _load_yaml(ROOT / "config" / "api.yaml")
+            cfg = _cached_yaml(str(ROOT / "config" / "api.yaml"))
             guard_mode = cfg.get("multi_guard", "unsupported_only")
             groups = _functional_groups(utterance)
             if guard_mode == "block" and len(groups) >= 2 and re.search(r"그리고|하고|한뒤|하고나서|다음에|후에", utterance):

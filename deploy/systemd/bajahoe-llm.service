@@ -1,0 +1,17 @@
+[Unit]
+Description=Bajahoe RKLLM OpenAI-compatible server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=bajahoe
+WorkingDirectory=/opt/bajahoe/rkllm
+EnvironmentFile=/etc/bajahoe.env
+# Set BAJAHOE_RKLLM_START in /etc/bajahoe.env to the exact supplied command.
+ExecStart=/bin/bash -lc 'exec ${BAJAHOE_RKLLM_START}'
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

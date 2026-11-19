@@ -34,6 +34,9 @@ class PostureConfig:
     camera_index: int
     camera_retry_sec: float
     model_complexity: int
+    camera_width: int
+    camera_height: int
+    camera_fps_limit: float
 
 
 def load_config(path=None, **overrides) -> PostureConfig:

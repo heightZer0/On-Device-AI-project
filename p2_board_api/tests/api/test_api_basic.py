@@ -83,11 +83,21 @@ def test_T14_settings_validation_and_propagation(env):
     assert r.status_code == 200
     assert env.eng.runtime["alert_interval_sec"] == 60 and env.eng.runtime["posture_sensitivity"] == "high"
     assert env.spk.mic is False
-    for bad in ({"unknown": 1}, {"tts_volume": 999}, {"tts_volume": True}, {"debug_mode": "yes"},
-                {"preview_stream_enabled": True}):
+    for bad in ({"unknown": 1}, {"tts_volume": 999}, {"tts_volume": True}, {"debug_mode": "yes"}):
         r = env.c.put("/api/v1/settings", json=bad)
         assert r.status_code == 400, bad
     assert env.c.get("/api/v1/settings").json()["settings"]["tts_volume"] == 0.3  # 거부된 요청은 반영 안 됨
+
+
+def test_preview_is_runtime_only_and_keeps_debug_hidden(env):
+    initial = env.c.get("/api/v1/settings").json()["settings"]
+    response = env.c.put("/api/v1/settings", json={"debug_mode": True, "preview_stream_enabled": True})
+    assert response.status_code == 200
+    assert env.hub._preview_stream_enabled is True
+    assert env.eng.debug is False
+    assert env.c.get("/api/v1/settings").json()["settings"] == initial
+    env.c.put("/api/v1/settings", json={"debug_mode": False, "preview_stream_enabled": False})
+    assert env.hub._preview_stream_enabled is False
 
 
 def test_settings_persist_across_restart(tmp_path):

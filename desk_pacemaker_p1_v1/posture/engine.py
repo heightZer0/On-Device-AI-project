@@ -301,9 +301,15 @@ class PostureEngine:
         self._thread.start()
 
     def _loop(self):
+        frame_interval = 1.0 / max(float(self.cfg.camera_fps_limit), 1.0)
         while not self._stop_evt.is_set():
+            started = self._clock()
             if not self.step():
                 time.sleep(0.05)
+                continue
+            remaining = frame_interval - (self._clock() - started)
+            if remaining > 0:
+                time.sleep(remaining)
 
     def close(self):
         self.stop_experiment_log()

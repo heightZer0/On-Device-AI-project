@@ -65,3 +65,16 @@ def test_zero_minute_alarm_is_rejected_as_invalid_range():
         Services(), utterance="영 분 뒤에 쉬라고 알려줘",
     )
     assert result["code"] == "INVALID_TIME_RANGE"
+
+
+@pytest.mark.parametrize("utterance", ["3시 30분에 쉬라고 알려줘", "세 시에 쉬라고 알려줘"])
+def test_clock_times_are_not_parsed_as_relative_duration(utterance):
+    assert command.parse_duration_minutes(utterance) is None
+
+
+def test_guard_does_not_match_inside_another_korean_word():
+    result = command.process(
+        '<posture>(command="check", type="0")<suda_end>', Services(),
+        utterance="개발하다가 자세 확인해줘",
+    )
+    assert result["code"] == "OK"

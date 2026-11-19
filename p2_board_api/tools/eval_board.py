@@ -70,10 +70,10 @@ def load_cases(path: Path) -> dict[str, list[dict[str, str]]]:
     return cases
 
 
-def canonical(raw: str) -> tuple | None:
+def canonical(raw: str, require_suda_end: bool) -> tuple | None:
     cleaned = re.sub(r"<think>.*?</think>", "", raw or "", flags=re.DOTALL)
     cleaned = re.sub(r"\s+", "", cleaned).strip()
-    parsed = command._parse(cleaned, require_suda_end=True)
+    parsed = command._parse(cleaned, require_suda_end=require_suda_end)
     validated = command._validate(parsed, cleaned, ValidationServices(), command._schema())
     return validated.function, validated.command, tuple(sorted(validated.params.items()))
 
@@ -126,6 +126,7 @@ def main() -> None:
     if not system_prompt.strip():
         raise ValueError("llm_system_prompt is empty in the selected config")
     model = cfg.get("llm_model", "rkllm")
+    require_suda_end = bool(command._schema().get("require_suda_end", True))
     cases = load_cases(args.workbook)
     targets = {"board": args.board_url}
     if args.server_url:
@@ -140,8 +141,8 @@ def main() -> None:
                               "utterance": case["utterance"], "expected": case["expected"]}
                     try:
                         raw, latency_ms = infer(client, url, model, system_prompt, case["utterance"])
-                        expected = canonical(case["expected"])
-                        actual = canonical(raw)
+                        expected = canonical(case["expected"], require_suda_end)
+                        actual = canonical(raw, require_suda_end)
                         record.update(raw_output=raw, latency_ms=round(latency_ms, 1),
                                       valid=True, match=actual == expected)
                     except Exception as exc:

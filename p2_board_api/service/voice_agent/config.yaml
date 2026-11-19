@@ -21,7 +21,7 @@ speak_server: {host: 127.0.0.1, port: 8081}
 p2:
   command_url: http://127.0.0.1:8000/api/v1/command
   token_env: BAJAHOE_DEVICE_TOKEN
-  timeout_sec: 12
+  timeout_sec: 35                  # P2 LLM 기본 30초보다 길게; 보드 실측 뒤 함께 조정
 
 fallback_phrases:        # P2가 응답하지 못할 때만 사용
   p2_down: "지금은 음성 명령을 처리할 수 없어요. 앱 버튼을 사용해 주세요."

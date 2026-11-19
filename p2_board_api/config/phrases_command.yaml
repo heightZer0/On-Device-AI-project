@@ -35,7 +35,8 @@ errors:
 alarm_set: "{minutes}분 뒤에 알려 드릴게요."
 alarm_already_set: "기존 휴식 알림이 있어요."
 alarm_check: "휴식 알림이 설정되어 있지 않아요."
-break_check: "현재 착석 시간은 {duration}이에요."
+break_check_ok: "아직 괜찮아요. 현재 착석 시간은 {duration}이에요."
+break_check_recommend: "1시간 이상 앉아 있었어요. 잠깐 쉬면서 몸을 풀어 주세요."
 sitting_current: "현재 착석 시간은 {duration}이에요."
 sitting_previous: "직전 세션 기준 착석 시간은 {duration}이에요."
 stretch:

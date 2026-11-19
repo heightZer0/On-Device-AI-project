@@ -17,6 +17,8 @@ from service.session_service.store import Store
 def build():
     cfg = load_config()
     # The supplied P1 module is a sibling project directory in this ZIP.
+    # P1 is a sibling of p2_board_api in the repository; compute from repo root
+    # so service startup works from any current working directory.
     p1_root = Path(__file__).resolve().parents[3] / "desk_pacemaker_p1_v1"
     sys.path.insert(0, str(p1_root.resolve()))
     try:

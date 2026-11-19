@@ -48,6 +48,10 @@ class Hub:
         self._pool = ThreadPoolExecutor(2) if async_speak else None
         self._break, self._break_timer = None, None
         self._health, self._stop_evt, self._threads = None, threading.Event(), []
+        # Preview is an in-memory transport switch.  It must not turn on debug
+        # output or be retained in settings.json when the mobile setup screen
+        # opens the camera.
+        self._preview_stream_enabled = False
 
         store.recover_unfinished()
         last = store.last_ended()
@@ -318,7 +322,7 @@ class Hub:
     def get_preview_frame(self):
         """Return one in-memory camera frame for the authenticated local preview only."""
         with self.lock:
-            if not (self.settings.get("debug_mode") and self.settings.get("preview_stream_enabled")):
+            if not self._preview_stream_enabled:
                 raise ApiError(404, "NOT_FOUND", "카메라 미리보기가 꺼져 있어요.")
             active_capture = self.state in (CAL, MON)
 
@@ -375,8 +379,16 @@ class Hub:
         return self.settings.get(key)
 
     def update_settings(self, patch):
+        preview_request = set(patch).issubset({"debug_mode", "preview_stream_enabled"}) and \
+            "preview_stream_enabled" in patch
         errors = S.validate_patch(patch)
         with self.lock:
+            if preview_request:
+                # P2DeviceClient uses this legacy pair to start/stop preview.
+                # Keep that request compatible, but never persist it or expose
+                # debug metrics through /status.
+                self._preview_stream_enabled = bool(patch["preview_stream_enabled"])
+                return {**self.settings, "preview_stream_enabled": self._preview_stream_enabled}
             new = {**self.settings, **patch}
             if patch.get("debug_mode") is False:
                 new["preview_stream_enabled"] = False
