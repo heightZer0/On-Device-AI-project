@@ -203,6 +203,34 @@ def test_default_mode_never_calls_llm_server():
     assert all("8080" not in u for u, _ in http.posts)      # legacy_direct_mode=false
 
 
+def test_voice_diagnostics_correlate_transcript_and_p2_request(caplog):
+    import logging
+
+    http = FakeHttp(Resp(200, {"tts_text": "확인했어요"}))
+    a = agent_with(http)
+    a._cfg["diagnostics"] = {"enabled": True, "log_stt_text": True}
+
+    class Sp:
+        def enqueue(self, *_a, **_kw):
+            pass
+
+    a._speaker = Sp()
+    with caplog.at_level(logging.INFO, logger="voice.agent"):
+        a.process_text("자세 확인해줘", time.monotonic(), time.monotonic())
+    request_id = http.posts[0][1]["request_id"]
+    assert f"request_id={request_id}" in caplog.text
+    assert "stt_text='자세 확인해줘'" in caplog.text
+
+
+def test_tts_output_rate_conversion_is_separate_from_mic_rate():
+    from service.voice_agent.tts import resample_output
+
+    samples = np.linspace(-1.0, 1.0, 1600, dtype=np.float32)
+    converted = resample_output(samples, 16000, 44100)
+    assert len(converted) == 4410 and converted.dtype == np.float32
+    assert resample_output(samples, 16000, None) is samples
+
+
 def test_empty_stt_ignored_by_default():
     a = agent_with(FakeHttp(Resp(200, {})))
     spoken = []

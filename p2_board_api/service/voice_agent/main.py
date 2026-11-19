@@ -31,7 +31,7 @@ def build(cfg: dict):
         log.error("TTS model load failed: %s", type(e).__name__)
         engine = UnavailableEngine(str(type(e).__name__))
     try:
-        player = make_sd_player(cfg["audio"]["output_device"])
+        player = make_sd_player(cfg["audio"]["output_device"], cfg["audio"].get("output_sample_rate"))
     except Exception as e:  # noqa: BLE001
         log.error("audio output unavailable: %s", type(e).__name__)
         def player(*_a, **_k):

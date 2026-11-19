@@ -91,7 +91,10 @@ class FakeProcessor:
             return {"success": True, "code": "OK", "result": {"awaiting": kind},
                     "intent": f"clarify_{kind}", "tts_text": text}
         if fn == "monitor":
-            r = services.monitoring_start() if 'start' in args else services.monitoring_stop()
+            if 'start' in args: r = services.monitoring_start()
+            elif 'pause' in args: r = services.monitoring_pause()
+            elif 'resume' in args: r = services.monitoring_start()
+            else: r = services.monitoring_stop()
             return {"success": True, "code": "OK", "result": r, "tts_text": "알겠어요."}
         if fn == "break" and "set_alarm" in args:
             from command import parse_duration_minutes

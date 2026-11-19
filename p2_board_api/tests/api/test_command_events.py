@@ -56,32 +56,151 @@ def test_T07_clarify_then_part(env):
 
 
 def test_T07_clarify_ttl_expiry(env):
+    env.c.post("/api/v1/monitoring/start")
     env.llm.out = '<clarify>(command="body_part")<suda_end>'
     env.c.post(C, json={"source": "voice", "utterance": "스트레칭"})
     env.clock.t = 31                                                    # TTL(30초) 경과
     env.llm.out = POSTURE
     response = env.c.post(C, json={"source": "voice", "utterance": "목"})
-    assert response.status_code == 408 and response.json()["error"]["code"] == "CLARIFICATION_TIMEOUT"
+    assert response.status_code == 200 and response.json()["tts_text"] == ""
     assert env.llm.calls == 1 and env.cmd.conversations["default"]["pending_clarification"] is None
+    assert env.hub.state == "MONITORING"
+    response = env.c.post(C, json={"source": "voice", "utterance": "자세 확인해줘"})
+    assert response.status_code == 200 and env.llm.calls == 2                 # 새 요청은 정상 처리
 
 
-def test_T07_unrelated_reask_once_then_release(env):
+def test_T07_unrelated_answer_is_silently_ignored_and_released(env):
     env.llm.out = '<clarify>(command="body_part")<suda_end>'
     env.c.post(C, json={"source": "voice", "utterance": "스트레칭"})
-    env.llm.out = POSTURE
     response = env.c.post(C, json={"source": "voice", "utterance": "응?"})
-    assert response.status_code == 200 and response.json()["result"]["awaiting"] == "body_part"
+    assert response.status_code == 200 and response.json()["tts_text"] == ""
+    assert response.json()["result"]["ignored"] is True
     assert env.llm.calls == 1                                           # 재질문은 LLM 호출 없음
-    response = env.c.post(C, json={"source": "voice", "utterance": "응?"})
-    assert response.status_code == 408 and response.json()["error"]["code"] == "CLARIFICATION_TIMEOUT"
-    assert env.llm.calls == 1 and env.cmd.conversations["default"]["pending_clarification"] is None
+    assert env.cmd.conversations["default"]["pending_clarification"] is None
+    env.llm.out = POSTURE
+    response = env.c.post(C, json={"source": "voice", "utterance": "자세 확인해줘"})
+    assert response.status_code == 200 and env.llm.calls == 2             # 새 명령은 다시 처리
+
+
+def test_intent_short_answers_keep_context(env):
+    env.llm.out = '<clarify>(command="intent")<suda_end>'
+    env.c.post(C, json={"source": "voice", "utterance": "목 좀 어떻게 해줘"})
+    response = env.c.post(C, json={"source": "voice", "utterance": "자세 확인"})
+    assert response.status_code == 200
+    assert env.proc.calls[-1] == '<posture>(command="check", type="1")<suda_end>'
+    assert env.cmd.conversations["default"]["pending_clarification"] is None
+
+
+def test_replayed_clarification_prompt_is_silent_and_does_not_end_session(env):
+    env.c.post("/api/v1/monitoring/start")
+    env.llm.out = '<clarify>(command="intent")<suda_end>'
+    env.c.post(C, json={"source": "voice", "utterance": "목 좀 어떻게 해줘"})
+    question = "자세 확인과 스트레칭 중 무엇을 원하시나요?"
+    response = env.c.post(C, json={"source": "voice", "utterance": question}).json()
+    assert response["tts_text"] == "" and response["result"]["ignored"] is True
+    assert env.cmd.conversations["default"]["pending_clarification"] is None
+    assert env.hub.state == "MONITORING"
+
+
+def test_stretch_and_sitting_during_monitoring_keep_session_active(env):
+    env.c.post("/api/v1/monitoring/start")
+    env.llm.out = '<clarify>(command="body_part")<suda_end>'
+    env.c.post(C, json={"source": "voice", "utterance": "스트레칭 알려줘"})
+    env.c.post(C, json={"source": "voice", "utterance": "목을 풀어줘"})
+    assert env.proc.calls[-1] == '<stretch>(command="recommend", part="1")<suda_end>'
+    assert env.hub.state == "MONITORING"
+
+    env.llm.out = '<clarify>(command="intent")<suda_end>'
+    env.c.post(C, json={"source": "voice", "utterance": "목 좀 어떻게 해줘"})
+    env.c.post(C, json={"source": "voice", "utterance": "스트레칭"})
+    assert env.proc.calls[-1] == '<stretch>(command="recommend", part="1")<suda_end>'
+    assert env.hub.state == "MONITORING"
+
+    env.llm.out = '<clarify>(command="intent")<suda_end>'
+    env.c.post(C, json={"source": "voice", "utterance": "어깨 좀 어떻게 해줘"})
+    env.llm.out = '<sitting>(command="time")<suda_end>'
+    env.c.post(C, json={"source": "voice", "utterance": "착석 시간 얼마나 됐어?"})
+    assert env.proc.calls[-1] == '<sitting>(command="time")<suda_end>'
+    assert env.hub.state == "MONITORING"
+
+    env.llm.out = '<clarify>(command="intent")<suda_end>'
+    env.c.post(C, json={"source": "voice", "utterance": "목 좀 어떻게 해줘"})
+    env.c.post(C, json={"source": "voice", "utterance": "스트레칭"})
+    assert env.proc.calls[-1] == '<stretch>(command="recommend", part="1")<suda_end>'
+    assert env.cmd.conversations["default"]["pending_clarification"] is None
+
+
+def test_intent_new_session_command_preempts_posture_word(env):
+    env.c.post("/api/v1/monitoring/start")
+    env.llm.out = '<clarify>(command="intent")<suda_end>'
+    env.c.post(C, json={"source": "voice", "utterance": "목 좀 어떻게 해줘"})
+    env.llm.out = '<monitor>(command="stop")<suda_end>'
+    response = env.c.post(C, json={"source": "voice", "utterance": "자세 측정 종료해줘"})
+    assert response.status_code == 200
+    assert env.proc.calls[-1] == '<monitor>(command="stop")<suda_end>'
+    assert env.hub.state == "IDLE"
+
+
+def test_pending_other_feature_requests_go_to_llm(env):
+    env.c.post("/api/v1/monitoring/start")
+    env.llm.out = '<clarify>(command="intent")<suda_end>'
+    env.c.post(C, json={"source": "voice", "utterance": "목 좀 어떻게 해줘"})
+    env.llm.out = '<sitting>(command="time")<suda_end>'
+    env.c.post(C, json={"source": "voice", "utterance": "자세 측정 중인데 얼마나 앉아 있었어?"})
+    assert env.proc.calls[-1] == '<sitting>(command="time")<suda_end>'
+    assert env.llm.calls == 2 and env.hub.state == "MONITORING"
+
+    env.llm.out = '<clarify>(command="time")<suda_end>'
+    env.c.post(C, json={"source": "voice", "utterance": "30분 뒤에 쉬라고 알려줘"})
+    env.llm.out = '<monitor>(command="pause")<suda_end>'
+    env.c.post(C, json={"source": "voice", "utterance": "자세 측정 1분만 멈춰줘"})
+    assert env.proc.calls[-1] == '<monitor>(command="pause")<suda_end>'
+    assert env.hub.state == "PAUSED"
+
+
+def test_body_part_full_stretch_request_is_new_command(env):
+    env.llm.out = '<clarify>(command="body_part")<suda_end>'
+    env.c.post(C, json={"source": "voice", "utterance": "스트레칭 알려줘"})
+    env.c.post(C, json={"source": "voice", "utterance": "목을 풀어줘"})
+    assert env.proc.calls[-1] == '<stretch>(command="recommend", part="1")<suda_end>'
+    assert env.llm.calls == 1
+    assert env.cmd.conversations["default"]["pending_clarification"] is None
+
+
+def test_intent_control_keyword_classification_is_action_sensitive():
+    from service.hub.command_service import _is_new_command
+
+    for text in ("자세 측정 시작해줘", "자세 측정 잠깐 멈춰줘", "자세 측정 재개해줘",
+                 "자세 측정 종료해줘", "나 공부 그만할래", "공부 끝낼래", "세션 종료해줘",
+                 "자세 측정 중인데 얼마나 앉아 있었어?"):
+        assert _is_new_command(text, "intent"), text
+    assert _is_new_command("목을 풀어줘", "body_part")
+    assert not _is_new_command("자세 확인", "intent")
+
+
+def test_opt_in_command_trace_includes_pending_and_early_return(tmp_path):
+    import json
+
+    env = make(calibrated=True, ai_log_enabled=True, ai_log_path=str(tmp_path / "trace.jsonl"))
+    env.llm.out = '<clarify>(command="intent")<suda_end>'
+    env.c.post(C, json={"source": "voice", "utterance": "목 좀 어떻게 해줘",
+                        "request_id": "trace-1", "conversation_id": "trace-conv"})
+    env.c.post(C, json={"source": "voice", "utterance": "오늘 날씨 어때",
+                        "request_id": "trace-2", "conversation_id": "trace-conv"})
+    rows = [json.loads(line) for line in (tmp_path / "trace.jsonl").read_text(encoding="utf-8").splitlines()]
+    assert rows[0]["request_id"] == "trace-1" and rows[0]["llm_called"] is True
+    assert rows[0]["pending_after"]["kind"] == "intent"
+    assert rows[1]["request_id"] == "trace-2" and rows[1]["llm_called"] is False
+    assert rows[1]["decision"] == "ignored" and rows[1]["pending_before"]["kind"] == "intent"
+    assert rows[1]["pending_after"] is None
 
 
 def test_part_ambiguous_asks_again(env):
     env.llm.out = '<clarify>(command="body_part")<suda_end>'
     env.c.post(C, json={"source": "voice", "utterance": "스트레칭"})
     j = env.c.post(C, json={"source": "voice", "utterance": "목이랑 어깨"}).json()
-    assert j["ok"] and j["result"]["awaiting"] == "body_part"
+    assert j["ok"] and j["tts_text"] == "" and j["result"]["ignored"] is True
+    assert env.cmd.conversations["default"]["pending_clarification"] is None
 
 
 def test_confirm_minutes_yes_and_no(env):

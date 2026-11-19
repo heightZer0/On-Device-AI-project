@@ -4,7 +4,8 @@ mic -> VAD -> STT -> 전처리 -> POST P2 /api/v1/command {source:"voice", utter
      -> tts_text (또는 error.message) 재생.  P3 는 LLM 서버를 호출하지 않는다.
 P3는 LLM을 직접 호출하지 않는다.
 
-개인정보: 오디오 버퍼는 STT 직후 폐기, 로그/메트릭에 STT 텍스트·문구를 남기지 않는다(길이·시간·성공 여부만).
+개인정보: 오디오 버퍼는 STT 직후 폐기한다. 기본 로그/메트릭에는 텍스트를 남기지 않으며,
+테스트용 diagnostics.log_stt_text 를 켠 경우에만 request_id 와 STT 원문을 로그에 남긴다.
 """
 from __future__ import annotations
 
@@ -130,21 +131,26 @@ class VoiceAgent(threading.Thread):
         self.process_text(text, t_end, time.monotonic())
 
     def process_text(self, text: str, t_end: float, t_stt: float) -> None:
-        if not preprocess(text):
+        request_id = uuid.uuid4().hex
+        normalized = preprocess(text)
+        diagnostics = self._cfg.get("diagnostics", {})
+        if diagnostics.get("enabled") and diagnostics.get("log_stt_text"):
+            log.info("voice_input request_id=%s stt_text=%r", request_id, normalized)
+        if not normalized:
             phrase = self._cfg["fallback_phrases"].get("stt_empty")
             if phrase:
                 self._speaker.enqueue(phrase, "reply")
             return
-        phrase = self._call_p2(text)
+        phrase = self._call_p2(text, request_id=request_id)
         t_cmd = time.monotonic()
-        log.info("voice cmd chars=%d stt_ms=%d cmd_ms=%d ok=%s", len(text),
+        log.info("voice cmd request_id=%s chars=%d stt_ms=%d cmd_ms=%d ok=%s", request_id, len(text),
                  (t_stt - t_end) * 1000, (t_cmd - t_stt) * 1000, bool(phrase))
         if phrase and phrase.strip():
             self._speaker.enqueue(
                 phrase, "reply",
-                on_first_audio=lambda: self._record(t_end, t_stt, t_cmd, time.monotonic()))
+                on_first_audio=lambda: self._record(t_end, t_stt, t_cmd, time.monotonic(), request_id))
         else:
-            self._record(t_end, t_stt, t_cmd, None)
+            self._record(t_end, t_stt, t_cmd, None, request_id)
 
     # ---- P2 호출 ----
     def _p2_headers(self) -> dict:
@@ -165,16 +171,22 @@ class VoiceAgent(threading.Thread):
             return data.get("tts_text")            # ok=false 여도 tts_text 재생
         return (data.get("error") or {}).get("message") or fb
 
-    def _call_p2(self, utterance: str) -> Optional[str]:
+    def _call_p2(self, utterance: str, request_id: Optional[str] = None) -> Optional[str]:
         p2 = self._cfg["p2"]
         body = {"source": "voice", "utterance": utterance, "confidence": None,
-                "request_id": uuid.uuid4().hex,
+                "request_id": request_id or uuid.uuid4().hex,
                 "conversation_id": self._conversation_id}  # keep raw STT text for P2 context and duration parsing
         return self._post_command(p2["command_url"], body, p2["timeout_sec"])
 
     # ---- 측정(P7 공유): 텍스트·문구는 기록하지 않음 ----
-    def _record(self, t_end, t_stt, t_cmd, t_tts) -> None:
+    def _record(self, t_end, t_stt, t_cmd, t_tts, request_id=None) -> None:
         m = self._cfg.get("metrics", {})
+        diagnostics = self._cfg.get("diagnostics", {})
+        if diagnostics.get("enabled"):
+            log.info("voice_timing request_id=%s stt_ms=%d cmd_ms=%d tts_first_audio_ms=%s total_ms=%s",
+                     request_id, round((t_stt - t_end) * 1000), round((t_cmd - t_stt) * 1000),
+                     "" if t_tts is None else round((t_tts - t_cmd) * 1000),
+                     "" if t_tts is None else round((t_tts - t_end) * 1000))
         if not m.get("enabled"):
             return
         try:

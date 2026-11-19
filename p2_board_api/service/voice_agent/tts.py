@@ -68,13 +68,24 @@ class UnavailableEngine:
         raise RuntimeError(self.reason)
 
 
-def make_sd_player(device=None) -> Callable[[np.ndarray, int, float], None]:
-    """sounddevice 블로킹 재생. 볼륨은 후처리 게인(가정: 합성 파라미터 아님)."""
+def resample_output(samples: np.ndarray, source_rate: int, target_rate: Optional[int]) -> np.ndarray:
+    """Convert TTS output for a sound card that requires a fixed output rate."""
+    if target_rate is None or int(target_rate) <= 0 or int(target_rate) == int(source_rate) or len(samples) == 0:
+        return samples
+    count = max(1, int(round(len(samples) * int(target_rate) / int(source_rate))))
+    return np.interp(np.linspace(0, len(samples) - 1, count),
+                     np.arange(len(samples)), samples).astype(np.float32)
+
+
+def make_sd_player(device=None, output_sample_rate: Optional[int] = None) -> Callable[[np.ndarray, int, float], None]:
+    """sounddevice playback; optional output rate is separate from the 16 kHz mic rate."""
     import sounddevice as sd
 
     def play(samples: np.ndarray, sr: int, volume: float) -> None:
         data = np.clip(samples * float(np.clip(volume, 0.0, 1.0)), -1.0, 1.0).astype(np.float32)
-        sd.play(data, sr, device=device, blocking=True)
+        output_rate = int(output_sample_rate) if output_sample_rate else int(sr)
+        data = resample_output(data, int(sr), output_rate)
+        sd.play(data, output_rate, device=device, blocking=True)
 
     return play
 

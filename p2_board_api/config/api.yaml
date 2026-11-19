@@ -37,7 +37,7 @@ preview_stream_enabled: false     # 기존 저장값 호환용. 실제 미리보
 conversation_ttl_sec: 10          # PLACEHOLDER
 break_alarm_replace: true         # TODO(CP0) 기존 휴식 알림 교체 정책 미확정
 multi_guard: unsupported_only     # v10.3 D-22: unsupported_only | block | off
-ai_log_enabled: false             # v10.3 D-26: opt-in, never stores audio
+ai_log_enabled: false             # opt-in; when enabled, writes STT text, LLM output and request trace (never audio)
 health_refresh_sec: 5
 phrases_path: config/phrases.yaml
 part_words_path: command/schema/part_words.yaml

@@ -8,7 +8,7 @@ paths:
   tts_tokens: ai/tts/tokens.txt
   tts_data_dir: ai/tts/espeak-ng-data
 
-audio: {input_device: null, output_device: null, sample_rate: 16000}
+audio: {input_device: null, output_device: null, sample_rate: 16000, output_sample_rate: null} # output only; e.g. 44100 for a DAC that requires it
 threads: {stt: 4, tts: 2}
 
 vad: {threshold: 0.5, min_silence_sec: 0.5, min_speech_sec: 0.25, max_speech_sec: 10}  # PLACEHOLDER TODO(실험)
@@ -28,3 +28,4 @@ fallback_phrases:        # P2가 응답하지 못할 때만 사용
   stt_empty: null        # null이면 무시
 
 metrics: {enabled: true, csv_path: logs/voice_latency.csv}   # 문구·STT 텍스트는 기록하지 않음
+diagnostics: {enabled: false, log_stt_text: false}            # 테스트 때만 켜기; 발화 원문을 로그에 기록함

@@ -11,7 +11,7 @@ from service.api_server.errors import ApiError
 from service.hub.clients import LLMTimeout, LLMUnavailable
 
 log = logging.getLogger("p2.command")
-_CANCEL = {"취소", "취소할게", "됐어", "그만", "괜찮아"}
+_CANCEL = {"취소", "취소할게", "질문취소", "재질문취소", "그질문취소"}
 _PART_ALIASES = {
     "0": ("전체", "전신", "온몸"),
     "1": ("목", "거북목"),
@@ -50,21 +50,43 @@ def _is_cancel(text):
     return _norm(text) in _CANCEL
 
 
-def _is_new_command(text, kind):
+def _new_request_kind(text):
+    """Recognize complete requests that must supersede a pending answer.
+
+    This deliberately looks for an action + its target. Merely saying “자세”
+    is not enough to turn an intent answer into a one-shot posture check.
+    """
     value = _norm(text)
-    if kind == "body_part" and _short_part(text) is not None:
+    has_session = any(x in value for x in ("모니터링", "측정", "공부", "세션", "집중모드"))
+    if has_session and any(x in value for x in ("종료", "끝내", "끝낼", "끝났", "그만", "마칠", "마쳐", "중지", "꺼줘", "꺼")):
+        return "monitor_stop"
+    if has_session and any(x in value for x in ("일시정지", "잠깐멈춰", "멈춰", "잠시멈춰", "보류")):
+        return "monitor_pause"
+    if has_session and any(x in value for x in ("재개", "다시시작", "이어가", "계속해")):
+        return "monitor_resume"
+    if has_session and any(x in value for x in ("시작", "켜줘", "켜", "시작해")):
+        return "monitor_start"
+
+    if any(x in value for x in ("착석시간", "앉은시간", "얼마나앉", "앉아있었", "공부시간", "얼마나공부")):
+        return "sitting"
+    if any(x in value for x in ("휴식알림", "휴식설정", "알림설정", "쉬라고알려", "쉬어야", "쉬는게좋", "쉬는게나을", "휴식필요", "계속공부해도괜찮")):
+        return "break"
+    if (any(x in value for x in ("자세확인", "머리위치확인", "위치확인", "자세봐", "위치봐"))
+            or re.search(r"(?:자세|머리위치|위치).{0,5}(?:확인|봐|체크|어때)", value)):
+        return "posture"
+    if "스트레칭" in value or (_explicit_part(text) is not None and any(
+            x in value for x in ("풀어", "풀기", "늘려", "펴줘"))):
+        return "stretch"
+    return None
+
+
+def _is_new_command(text, kind):
+    request_kind = _new_request_kind(text)
+    # During an intent question, a stretch choice is itself a valid answer.
+    # In a body-part or time question it is a different, complete feature ask.
+    if kind == "intent" and request_kind in ("posture", "stretch"):
         return False
-    if kind == "body_part" and ("말고" in value or "이번" in value) and _explicit_part(text) is not None:
-        return True
-    if kind == "intent" and ("자세" in value or "위치확인" in value or "스트레칭" in value or "풀어" in value):
-        return False
-    if kind == "time" and (re.fullmatch(r"[0-9]+", value) or re.search(r"\d+분|[가-힣]+시간|[가-힣]+분", value)):
-        return False
-    # Complete requests should cancel an unrelated clarification and go through the LLM.
-    return any(word in value for word in (
-        "모니터링", "측정", "자세", "거북목", "스트레칭", "휴식알림", "착석시간", "앉은시간",
-        "시작", "재개", "일시정지", "종료", "중지", "멈춰", "알림설정",
-    ))
+    return request_kind is not None
 
 
 def _requested_stretch_action(text):
@@ -113,7 +135,14 @@ class CommandService:
             finally:
                 lock.release()
 
-    def _ai_log(self, req, utterance, raw, output, started, error=None):
+    @staticmethod
+    def _pending_snapshot(state):
+        pending = state.get("pending_clarification") if state else None
+        if not pending:
+            return None
+        return {"kind": pending.get("kind"), "retry_count": pending.get("retry_count", 0)}
+
+    def _ai_log(self, req, utterance, raw, output, started, error=None, trace=None):
         if not self.hub.cfg.get("ai_log_enabled", False):
             return
         path = self.hub.cfg.get("ai_log_path", "data/ai_log.jsonl")
@@ -121,6 +150,8 @@ class CommandService:
                "model_version": self.hub.cfg.get("llm_model"),
                "stt_text": utterance, "llm_output": raw, "validation": output,
                "latency_ms": round((time.monotonic() - started) * 1000), "error_code": error}
+        if trace:
+            row.update(trace)
         with self._ai_log_lock:
             os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
             with open(path, "a", encoding="utf-8") as f:
@@ -146,21 +177,31 @@ class CommandService:
         return self._reply(True, "OK", message, {"awaiting": pending["kind"]})
 
     def _retry_pending(self, state, pending, message, *, range_error=False):
-        if pending["retry_count"] < 1:
-            pending["retry_count"] += 1
-            pending["expires_at"] = self.mono() + self.pending_ttl_sec
-            state["pending_clarification"] = pending
-            code = "INVALID_TIME_RANGE" if range_error else "OK"
-            return self._reply(not range_error, code, message, {"awaiting": pending["kind"]})
+        # Invalid, explicit time values still deserve one useful correction.
+        if range_error:
+            if pending["retry_count"] < 1:
+                pending["retry_count"] += 1
+                pending["expires_at"] = self.mono() + self.pending_ttl_sec
+                state["pending_clarification"] = pending
+                return self._reply(False, "INVALID_TIME_RANGE", message, {"awaiting": pending["kind"]})
+            state["pending_clarification"] = None
+            text = self.phrases.get("errors", {}).get(
+                "INVALID_TIME_RANGE", "휴식 알림은 1분에서 180분 사이로 설정해 주세요.")
+            return self._reply(False, "INVALID_TIME_RANGE", text, {"reason": "retry_exhausted"})
         state["pending_clarification"] = None
-        return self._reply(False, "CLARIFICATION_TIMEOUT",
-                           self.phrases.get("errors", {}).get("CLARIFICATION_TIMEOUT", "요청이 취소되었어요."),
-                           {"reason": "retry_exhausted"})
+        # Do not speak the same prompt in response to nearby conversation or
+        # an unclassified answer. The next clear request starts normally.
+        return self._reply(True, "OK", "", {"ignored": True, "pending_cleared": True,
+                                              "reason": "clarification_unrecognized"})
 
     def _resolve_intent(self, text):
         value = _norm(text)
-        posture = any(x in value for x in ("자세", "위치확인", "자세확인", "머리위치"))
-        stretch = any(x in value for x in ("스트레칭", "풀어", "펴줘", "늘려"))
+        choice_value = re.sub(r"(?:이요|요|이에요|예요|입니다)$", "", value)
+        posture = (choice_value in {"자세", "자세확인", "자세확인해줘", "위치확인",
+                                    "첫번째", "첫째", "1번", "일번"}
+                   or any(x in value for x in ("자세확인", "자세봐", "위치확인", "위치봐", "머리위치확인")))
+        stretch = (choice_value in {"스트레칭", "두번째", "둘째", "2번", "이번"}
+                   or any(x in value for x in ("스트레칭", "풀어", "풀기", "펴줘", "늘려")))
         if posture == stretch:
             return None
         return "posture" if posture else "stretch"
@@ -174,11 +215,11 @@ class CommandService:
         now = self.mono()
         if now > pending["expires_at"]:
             state["pending_clarification"] = None
-            compact = _norm(text)
-            if _short_part(text) is not None or re.fullmatch(r"[0-9]+", compact):
-                return self._reply(False, "CLARIFICATION_TIMEOUT",
-                                   self.phrases.get("errors", {}).get("CLARIFICATION_TIMEOUT", "재질문 시간이 지나 요청을 취소했어요."),
-                                   {"reason": "timeout"})
+            # A clear fresh request remains valid after the question expires;
+            # an old/ambiguous answer expires silently.
+            if _new_request_kind(text) is None:
+                return self._reply(True, "OK", "", {"ignored": True, "pending_cleared": True,
+                                                      "reason": "clarification_expired"})
             pending = None
         if not pending:
             return None
@@ -190,6 +231,14 @@ class CommandService:
         if pending["kind"] == "body_part" and _requested_stretch_action(text):
             state["pending_clarification"] = None
             return None
+
+        if pending["kind"] == "body_part":
+            part = _explicit_part(text)
+            value = _norm(text)
+            if part is not None and any(x in value for x in ("스트레칭", "풀어", "풀기", "늘려", "펴줘")):
+                state["pending_clarification"] = None
+                return {"raw": f'<stretch>(command="recommend", part="{part}")<suda_end>',
+                        "context": {"stretch_mode": "first", "last_stretch": state.get("last_stretch")}}
 
         if _is_new_command(text, pending["kind"]):
             state["pending_clarification"] = None
@@ -310,20 +359,50 @@ class CommandService:
         t0, utterance, raw = time.monotonic(), req.utterance, req.command
         llm_output, execution_context = None, {}
         state = self.conversations.setdefault(conversation_id, {"pending_clarification": None, "last_stretch": None})
+        pending_before = self._pending_snapshot(state)
+        decision = "command" if utterance is None else "llm"
+        llm_called = False
 
         if utterance is not None:
             step = self._resolve_pending(utterance, state)
             if isinstance(step, dict) and "raw" not in step:
+                code = step.get("code", "OK")
+                self._ai_log(req, utterance, None,
+                             {"code": code, "intent": None, "validated_command": None,
+                              "reason": (step.get("result") or {}).get("reason")}, t0,
+                             code if code != "OK" else None,
+                             trace={"llm_called": False, "decision": "pending_reply" if step.get("tts_text") else "ignored",
+                                    "pending_before": pending_before,
+                                    "pending_after": self._pending_snapshot(state), "final_command": None})
                 return step
             if step is None:
                 step = self._resolve_last_stretch(utterance, state)
                 if isinstance(step, dict) and "raw" not in step:
+                    code = step.get("code", "OK")
+                    self._ai_log(req, utterance, None,
+                                 {"code": code, "intent": None, "validated_command": None,
+                                  "reason": (step.get("result") or {}).get("reason")}, t0,
+                                 code if code != "OK" else None,
+                                 trace={"llm_called": False, "decision": "pending_reply" if step.get("tts_text") else "ignored",
+                                        "pending_before": pending_before,
+                                        "pending_after": self._pending_snapshot(state), "final_command": None})
                     return step
             if step is not None:
                 raw, execution_context = step["raw"], step.get("context", {})
+                decision = "pending_resolved"
             else:
-                raw = self._from_llm(utterance)
+                try:
+                    raw = self._from_llm(utterance)
+                except ApiError as error:
+                    self._ai_log(req, utterance, None,
+                                 {"code": error.code, "reason": error.code}, t0, error.code,
+                                 trace={"llm_called": True, "decision": "llm_error",
+                                        "pending_before": pending_before,
+                                        "pending_after": self._pending_snapshot(state), "final_command": None})
+                    raise
                 llm_output = raw
+                llm_called = True
+                decision = "llm_new_request"
 
         try:
             if hasattr(self.processor, "process_p2"):
@@ -332,6 +411,13 @@ class CommandService:
                 out = self.processor.process(raw, utterance, self.hub)
         except Exception as e:
             log.warning("processor failed: %s", type(e).__name__)
+            self._ai_log(req, utterance, llm_output,
+                         {"code": "ERROR", "intent": None, "validated_command": None,
+                          "reason": type(e).__name__}, t0, "processor_error",
+                         trace={"llm_called": llm_called, "decision": "processor_error",
+                                "pending_before": pending_before,
+                                "pending_after": self._pending_snapshot(state),
+                                "final_command": raw})
             return self._reply(False, "ERROR", self.phrases["errors"]["command_failed"])
 
         code = out.get("code", "ERROR")
@@ -383,7 +469,11 @@ class CommandService:
         self._ai_log(req, utterance, llm_output,
                      {"code": code, "intent": out.get("intent"),
                       "validated_command": out.get("validated_command"),
-                      "reason": result.get("reason")}, t0, code if code != "OK" else None)
+                      "reason": result.get("reason")}, t0, code if code != "OK" else None,
+                     trace={"llm_called": llm_called, "decision": decision,
+                            "pending_before": pending_before,
+                            "pending_after": self._pending_snapshot(state),
+                            "final_command": out.get("validated_command") or raw})
         log.info("command code=%s ms=%d", code, int((time.monotonic() - t0) * 1000))
         reply = self._reply(bool(out.get("success", out.get("ok", False))), code,
                             out.get("tts_text", ""), result)
