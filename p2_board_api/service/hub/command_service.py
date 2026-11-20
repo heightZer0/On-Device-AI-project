@@ -162,8 +162,10 @@ class CommandService:
 
     def _prompt_body_part(self, pending_action, last_stretch=None):
         if pending_action == "stretch_alternative" and not last_stretch:
-            return "어느 부위의 다른 스트레칭을 안내할까요? 목, 어깨, 허리 또는 전체 중 말씀해 주세요."
-        return self.phrases.get("clarify", {}).get("body_part", "어느 부위 스트레칭을 알려 드릴까요?")
+            return self.phrases.get("clarify", {}).get(
+                "body_part", "어느 부위를 풀어 드릴까요? 목, 어깨, 허리, 전체 중 말씀해 주세요.")
+        return self.phrases.get("clarify", {}).get(
+            "body_part", "어느 부위를 풀어 드릴까요? 목, 어깨, 허리, 전체 중 말씀해 주세요.")
 
     def _set_pending(self, state, kind, original, action, slots=None, choices=None, retry=0):
         state["pending_clarification"] = {
@@ -226,7 +228,7 @@ class CommandService:
 
         if _is_cancel(text):
             state["pending_clarification"] = None
-            return self._reply(True, "OK", "재질문을 취소했어요.", {"cancelled": True})
+            return self._reply(True, "OK", "이번 음성 요청을 취소했어요.", {"cancelled": True})
 
         if pending["kind"] == "body_part" and _requested_stretch_action(text):
             state["pending_clarification"] = None
@@ -269,7 +271,9 @@ class CommandService:
                 return {"raw": f'<stretch>(command="recommend", part="{part}")<suda_end>',
                         "context": {"stretch_mode": "first", "last_stretch": state.get("last_stretch")}}
             posture_type = "0" if part == "0" else "1"
-            note = None if part in (None, "0", "1") else f"현재는 머리 위치만 확인할 수 있습니다. {self._part_name(part)} 자세는 확인할 수 없어 머리 위치를 확인합니다."
+            note = None if part in (None, "0", "1") else (
+                f"현재는 머리 위치를 기준으로 자세를 확인하고 있어요. "
+                f"{self._part_name(part)} 자세 자체는 확인할 수 없어 머리 위치를 확인합니다.")
             return {"raw": f'<posture>(command="check", type="{posture_type}")<suda_end>',
                     "context": {"prefix_notice": note}}
 
@@ -281,8 +285,10 @@ class CommandService:
             if duration is None:
                 return self._retry_pending(state, pending, self.phrases.get("clarify", {}).get("time", "몇 분 뒤로 설정할까요?"))
             if not 1 <= duration <= 180:
+                range_prompt = self.phrases.get("errors", {}).get(
+                    "INVALID_TIME_RANGE", "휴식 알림은 1분부터 180분까지 설정할 수 있어요. 몇 분 뒤로 할까요?")
                 return self._retry_pending(state, pending,
-                    "휴식 알림은 1분부터 180분까지 설정할 수 있어요. 몇 분 뒤로 설정할까요?", range_error=True)
+                    range_prompt, range_error=True)
             state["pending_clarification"] = None
             return {"raw": '<break>(command="set_alarm", minutes="N")<suda_end>',
                     "context": {"duration_minutes": duration}}
@@ -291,10 +297,11 @@ class CommandService:
     def _intent_prompt(self, part):
         name = self._part_name(part) if part is not None else None
         if name == "목":
-            return "목 위치를 확인할까요, 목 스트레칭을 안내할까요?"
+            return "목 위치를 확인할까요, 목 스트레칭을 알려 드릴까요?"
         if name in ("어깨", "허리"):
-            return f"현재는 머리 위치만 확인할 수 있습니다. {name} 스트레칭을 안내할까요, 머리 위치를 확인할까요?"
-        return self.phrases.get("clarify", {}).get("intent", "자세 확인과 스트레칭 중 무엇을 원하시나요?")
+            return f"{name} 스트레칭을 알려 드릴까요, 현재 자세를 확인할까요?"
+        return self.phrases.get("clarify", {}).get(
+            "intent", "자세 확인을 원하시나요, 스트레칭을 원하시나요?")
 
     @staticmethod
     def _part_name(part):
@@ -433,7 +440,6 @@ class CommandService:
                        "retry_count": 0}
             state["pending_clarification"] = pending
             out.setdefault("result", {})["awaiting"] = "time"
-            out["tts_text"] += " 몇 분 뒤로 설정할까요?"
 
         if out.get("success", out.get("ok", False)):
             if out.get("intent") == "clarify_body_part":

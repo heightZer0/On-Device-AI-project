@@ -31,7 +31,7 @@ def test_T06_llm_timeout_and_down(env):
     env.llm.err = "timeout"
     r = env.c.post(C, json={"source": "voice", "utterance": "x"})
     assert r.status_code == 504 and r.json()["error"]["code"] == "AI_INFERENCE_TIMEOUT"
-    assert "다시 말씀" in r.json()["error"]["details"]["tts_text"]
+    assert r.json()["error"]["details"]["tts_text"] == "처리가 지연되고 있어요. 잠시 기다려 주세요."
     env.llm.err = "down"
     r = env.c.post(C, json={"source": "voice", "utterance": "x"})
     assert r.status_code == 503 and r.json()["error"]["code"] == "AI_MODULE_UNAVAILABLE"
@@ -278,7 +278,8 @@ def test_break_alarm_replace_policy_and_expiry(env):
     b = env.hub.set_break_alarm(10)
     assert a["set"] and b["replaced"] and env.hub.get_break_status()["minutes"] == 10
     env.hub._on_break_alarm()
-    assert "쉬어 갈 시간" in env.spk.spoken[-1][0] and env.hub.get_break_status() == {"set": False}
+    assert "휴식 시간이에요. 잠깐 일어나 몸을 풀어 주세요." == env.spk.spoken[-1][0]
+    assert env.hub.get_break_status() == {"set": False}
     e2 = make(break_alarm_replace=False)
     e2.hub.set_break_alarm(30)
     assert e2.hub.set_break_alarm(5)["set"] is False

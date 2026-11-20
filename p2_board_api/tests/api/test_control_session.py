@@ -19,17 +19,22 @@ def test_T04_full_state_table(env):
     # IDLE -> MONITORING (+새 세션)
     j = c.post(P + "monitoring/start").json()
     assert j["system_state"] == "MONITORING" and j["session_id"] and j["monitoring"] == "running"
+    assert j["message"] == "자세 측정을 시작했어요."
     sid = j["session_id"]
     # MONITORING: start 멱등(같은 세션), calibration/start 409
+    assert c.post(P + "monitoring/start").json()["message"] == "이미 자세를 측정하고 있어요."
     assert c.post(P + "monitoring/start").json()["session_id"] == sid
     assert c.post(P + "calibration/start").status_code == 409
     # pause -> PAUSED, pause 멱등, start -> 같은 세션 재개
+    paused = c.post(P + "monitoring/pause").json()
+    assert paused["system_state"] == "PAUSED" and paused["message"] == "자세 측정을 잠시 멈췄어요."
     assert c.post(P + "monitoring/pause").json()["system_state"] == "PAUSED"
-    assert c.post(P + "monitoring/pause").json()["system_state"] == "PAUSED"
+    assert c.post(P + "monitoring/start").json()["message"] == "자세 측정을 다시 시작했어요."
     assert c.post(P + "monitoring/start").json()["session_id"] == sid
     # stop -> IDLE + 세션 요약, 두 번째 stop 도 성공
     j = c.post(P + "monitoring/stop").json()
     assert j["system_state"] == "IDLE" and j["session_summary"]["session_id"] == sid
+    assert j["message"] == "자세 측정을 종료하고 기록을 저장했어요."
     assert c.post(P + "monitoring/stop").json()["session_summary"]["session_id"] == sid
     assert env.eng.calls.count("start") == 1
 

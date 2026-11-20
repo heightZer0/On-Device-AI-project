@@ -24,7 +24,7 @@ p2:
   timeout_sec: 35                  # P2 LLM 기본 30초보다 길게; 보드 실측 뒤 함께 조정
 
 fallback_phrases:        # P2가 응답하지 못할 때만 사용
-  p2_down: "지금은 음성 명령을 처리할 수 없어요. 앱 버튼을 사용해 주세요."
+  p2_down: "지금은 음성 요청을 처리할 수 없어요. 화면의 버튼을 이용해 주세요."
   stt_empty: null        # null이면 무시
 
 metrics: {enabled: true, csv_path: logs/voice_latency.csv}   # 문구·STT 텍스트는 기록하지 않음

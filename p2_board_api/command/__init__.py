@@ -291,7 +291,11 @@ def _validate(parsed: ParsedCommand, raw: str, services, schema: dict) -> Valida
                        message_key="INVALID_STATE")
     if (parsed.function, parsed.command) == ("monitor", "pause") and getattr(services, "state", None) != "MONITORING":
         state = getattr(services, "state", None)
-        raise _Failure("PRECONDITION", precondition="INVALID_STATE", reason="state_paused" if state == "PAUSED" else "state_idle", message_key="INVALID_STATE")
+        if state == "IDLE":
+            raise _Failure("PRECONDITION", precondition="NOT_MONITORING", reason="not_monitoring",
+                           message_key="NOT_MONITORING")
+        raise _Failure("PRECONDITION", precondition="INVALID_STATE", reason="state_paused",
+                       message_key="INVALID_STATE")
     if (parsed.function, parsed.command) == ("monitor", "start") and getattr(services, "state", None) == "MONITORING":
         pre.discard("camera_ready")
         pre.discard("calibrated")
@@ -303,15 +307,24 @@ def _validate(parsed: ParsedCommand, raw: str, services, schema: dict) -> Valida
         if not camera_ready:
             raise _Failure("PRECONDITION", precondition="CAMERA_NOT_READY", message_key="CAMERA_NOT_READY")
     if "monitoring" in pre and getattr(services, "state", None) != "MONITORING":
-        posture = services.get_posture() if hasattr(services, "get_posture") else {}
-        reason = "not_monitoring"
-        if posture.get("state") == "unavailable":
-            reason = "unavailable:" + str(posture.get("reason") or "unknown")
-        raise _Failure("PRECONDITION", precondition="POSTURE_DATA_UNAVAILABLE", reason=reason, message_key="POSTURE_DATA_UNAVAILABLE")
+        state = getattr(services, "state", None)
+        if state == "IDLE":
+            raise _Failure("PRECONDITION", precondition="NOT_MONITORING", reason="not_monitoring",
+                           message_key="NOT_MONITORING")
+        raise _Failure("PRECONDITION", precondition="INVALID_STATE", reason="state_paused",
+                       message_key="INVALID_STATE")
     if "not_unavailable" in pre:
-        state = services.get_posture().get("state")
-        if state == "unavailable":
-            raise _Failure("PRECONDITION", precondition="POSTURE_DATA_UNAVAILABLE", reason="unavailable", result={"reason": "unavailable"}, message_key="POSTURE_DATA_UNAVAILABLE")
+        posture = services.get_posture()
+        if posture.get("state") == "unavailable":
+            reason = posture.get("reason") or "unknown"
+            if reason == "camera_disconnected":
+                raise _Failure("PRECONDITION", precondition="CAMERA_NOT_READY", reason=reason,
+                               message_key="CAMERA_NOT_READY")
+            if reason == "not_calibrated":
+                raise _Failure("PRECONDITION", precondition="CALIBRATION_REQUIRED", reason=reason,
+                               message_key="CALIBRATION_REQUIRED")
+            raise _Failure("PRECONDITION", precondition="POSTURE_DATA_UNAVAILABLE", reason=reason,
+                           result={"reason": reason}, message_key="POSTURE_DATA_UNAVAILABLE")
     if "session" in pre:
         if not (getattr(services, "session", None) or (services.get_session() or {}).get("session_id")):
             raise _Failure("PRECONDITION", precondition="SESSION_NOT_FOUND", message_key="SESSION_NOT_FOUND")
@@ -350,22 +363,28 @@ def _execute(command: ValidatedCommand, services, phrases: dict, conversation: d
         prefix = phrases.get("posture_check_all_prefix", "") if p.get("type") == "0" else ""
         message = phrases.get("posture_state", {}).get(state)
         if state == "unavailable":
-            message = phrases.get("posture_unavailable", "지금은 자세를 측정할 수 없어요.")
+            message = phrases.get("posture_unavailable", "머리와 어깨가 카메라에 보이도록 위치를 조정해 주세요.")
         text = " ".join(part for part in (prefix, message) if part)
         result["message"] = text
         return _result(True, "OK", text, result=result, intent=command.intent, validated=command.raw)
 
     if fn == "monitor":
+        messages = phrases.get("monitoring", {})
         if action == "start" and getattr(services, "state", None) == "MONITORING":
-            return _result(True, "OK", "이미 자세 모니터링 중입니다.", result={"system_state": "MONITORING"}, intent=command.intent, validated=command.raw)
+            return _result(True, "OK", messages.get("already_running", "이미 자세를 측정하고 있어요."),
+                           result={"system_state": "MONITORING"}, intent=command.intent, validated=command.raw)
         method_name = {"start": "monitoring_start",
                        "pause": "monitoring_pause",
                        "stop": "monitoring_stop"}[action]
+        was_paused = action == "start" and getattr(services, "state", None) == "PAUSED"
         response = getattr(services, method_name)()
         system_state = response.get("system_state", getattr(services, "state", None))
-        text = response.get("message") or {"start": "모니터링을 시작했어요.",
-                                           "pause": "모니터링을 일시정지했어요.",
-                                           "stop": "모니터링을 종료했어요."}[action]
+        defaults = {"start": "자세 측정을 시작했어요.",
+                    "pause": "자세 측정을 잠시 멈췄어요.",
+                    "stop": "자세 측정을 종료하고 기록을 저장했어요."}
+        text = response.get("message") or messages.get(action, defaults[action])
+        if was_paused:
+            text = messages.get("resume", "자세 측정을 다시 시작했어요.")
         return _result(True, "OK", text, result={"system_state": system_state}, intent=command.intent, validated=command.raw)
 
     if fn == "clarify":
@@ -392,7 +411,7 @@ def _execute(command: ValidatedCommand, services, phrases: dict, conversation: d
             shown = set(last.get("shown_exercise_ids", []))
             selected = next((x for x in exercises if x.get("id") not in shown), None)
             if selected is None:
-                text = "현재 안내할 수 있는 다른 동작은 없어요. 방금 동작을 다시 안내할까요?"
+                text = phrases.get("stretch_exhausted", "이 부위의 준비된 동작을 모두 안내했어요. 다시 듣고 싶으면 ‘다시 알려줘’라고 말씀해 주세요.")
                 return _result(False, "UNSUPPORTED", text, result={"reason": "no_alternative_exercise", "part": int(p["part"])},
                                intent=command.intent, validated=command.raw)
         if selected is None and exercises:
@@ -403,7 +422,7 @@ def _execute(command: ValidatedCommand, services, phrases: dict, conversation: d
                            intent=command.intent, validated=command.raw)
         steps = selected.get("steps", [])
         title = selected.get("title", phrases.get("stretch", {}).get(p["part"], "스트레칭 안내"))
-        text = " ".join([title, *steps])
+        text = " ".join(steps)
         return _result(True, "OK", text, result={"part": int(p["part"]), "title": title,
                                                   "steps": steps, "exercise_id": selected["id"]},
                        intent=command.intent, validated=command.raw)
@@ -427,7 +446,7 @@ def _execute(command: ValidatedCommand, services, phrases: dict, conversation: d
             text = phrases.get("break_check_recommend", "1시간 이상 앉아 있었어요. 잠깐 쉬면서 몸을 풀어 주세요.")
         else:
             duration = _duration_text(sitting_sec)
-            text = phrases.get("break_check_ok", "아직 괜찮아요. 현재 착석 시간은 {duration}이에요.").format(duration=duration)
+            text = phrases.get("break_check_ok", "현재 착석 시간은 {duration}이에요. 아직 1시간이 지나지 않았어요.").format(duration=duration)
         return _result(True, "OK", text, result={"sitting_sec": sitting_sec},
                        intent=command.intent, validated=command.raw)
 

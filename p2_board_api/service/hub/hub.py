@@ -119,32 +119,39 @@ class Hub:
             if self.state == CAL:
                 raise ApiError(409, "INVALID_STATE", "캘리브레이션 중에는 시작할 수 없어요.")
             if self.state == MON:
-                return self._control("이미 모니터링 중이에요.")
+                message = (self.phrases.get("monitoring") or {}).get("already_running", "이미 자세를 측정하고 있어요.")
+                return self._control(message)
             if self.state == PAUSED:
                 if not self.ensure_camera_ready():
-                    raise ApiError(503, "CAMERA_NOT_READY", "카메라를 사용할 수 있을 때 다시 시도해 주세요.")
+                    raise ApiError(503, "CAMERA_NOT_READY", "카메라 연결을 확인한 뒤 다시 요청해 주세요.")
                 self.engine.resume()
                 self.state = MON
-                return self._control("모니터링을 다시 시작했어요.")
+                message = (self.phrases.get("monitoring") or {}).get("resume", "자세 측정을 다시 시작했어요.")
+                return self._control(message)
             if not self.calibrated():
-                raise ApiError(409, "CALIBRATION_REQUIRED", "기준 자세를 먼저 설정해 주세요.")
+                raise ApiError(409, "CALIBRATION_REQUIRED", "먼저 화면에서 기준 자세를 등록해 주세요.")
             if not self.ensure_camera_ready():
-                raise ApiError(503, "CAMERA_NOT_READY", "카메라를 사용할 수 있을 때 다시 시도해 주세요.")
+                raise ApiError(503, "CAMERA_NOT_READY", "카메라 연결을 확인한 뒤 다시 요청해 주세요.")
             self.engine.start()
             now = iso(self.clock())
             self.session = SessionTracker(session_id="session_" + uuid.uuid4().hex[:12], started_at=now)
             self.store.create_session(self.session.session_id, now)
             self._since_ckpt_ms = 0
             self.state = MON
-            return self._control("모니터링을 시작했어요.")
+            message = (self.phrases.get("monitoring") or {}).get("start", "자세 측정을 시작했어요.")
+            return self._control(message)
 
     def monitoring_pause(self):
         with self.lock:
             if self.state != MON:
-                return self._control("일시정지할 모니터링이 없어요.")
+                messages = self.phrases.get("monitoring") or {}
+                message = (messages.get("already_paused", "자세 측정이 이미 잠시 멈춰 있어요.")
+                           if self.state == PAUSED else "먼저 자세 측정을 시작해 주세요.")
+                return self._control(message)
             self.engine.pause()
             self.state = PAUSED
-            return self._control("일시정지했어요.")
+            message = (self.phrases.get("monitoring") or {}).get("pause", "자세 측정을 잠시 멈췄어요.")
+            return self._control(message)
 
     def monitoring_stop(self):
         with self.lock:
@@ -158,7 +165,9 @@ class Hub:
                 self._end_session()
                 self.engine.stop()
             self.state, self._resume_to = IDLE, IDLE
-            return self._control("모니터링을 종료했어요.", session_summary=self.last_session)
+            message = (self.phrases.get("monitoring") or {}).get(
+                "stop", "자세 측정을 종료하고 기록을 저장했어요.")
+            return self._control(message, session_summary=self.last_session)
 
     def _end_session(self):
         now = iso(self.clock())
