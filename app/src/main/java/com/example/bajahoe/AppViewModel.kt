@@ -61,6 +61,11 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
         /** 공부 중 기록을 저장소에 반영하는 간격(초). 앱이 갑자기 꺼져도 이만큼만 잃는다 */
         const val FLUSH_EVERY_SEC = 15
+
+        /** 음성으로 측정을 시작했을 때 공부 화면으로 자동 이동하는 화면들 (자세설정 중에는 이동하지 않음) */
+        private val REMOTE_START_SCREENS = setOf(
+            Screen.HOME, Screen.RESULT, Screen.CALENDAR, Screen.PROFILE, Screen.SETTINGS,
+        )
     }
 
     private val storage = Storage(app)
@@ -281,6 +286,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 else if (msg.progress == 0f && !calibrating) calibrationError = null
             }
             is DeviceMessage.Calibration -> onCalibration(msg)
+            is DeviceMessage.Session -> onDeviceSession(msg.state)
             is DeviceMessage.Status -> {
                 lastStatus = msg
                 lastStatusAt = System.currentTimeMillis()
@@ -341,7 +347,10 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     // ================= 학습 모드 =================
 
-    fun startStudy() {
+    fun startStudy() = beginStudy(fromDevice = false)
+
+    /** [fromDevice]: 음성 명령으로 기기가 이미 측정을 시작한 경우 시작 요청을 다시 보내지 않는다 */
+    private fun beginStudy(fromDevice: Boolean) {
         val c = client ?: return
         issueSeconds.clear()
         lastStatus = null
@@ -354,13 +363,38 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         study = StudyUi(todayFocusSec = storage.day(pendingDate).focusSec)
         AppLog.i("공부 시작. 오늘 누적 ${study.todayFocusSec}초부터 이어서 측정")
         c.setMode(Protocol.MODE_MONITOR)
-        c.session("start")
+        if (!fromDevice) c.session("start")
         screen = Screen.STUDY
         stopTicking()
         tickJob = viewModelScope.launch {
             while (true) {
                 delay(1000)
                 tick()
+            }
+        }
+    }
+
+    /** 음성 명령 등으로 기기 쪽 측정 상태가 바뀌면 앱 화면도 따라간다 */
+    private fun onDeviceSession(state: String) {
+        // 홈 등에서 "공부 시작할게"라고 말하면 공부 화면으로 들어간다
+        if (state == "MONITORING" && screen in REMOTE_START_SCREENS) {
+            AppLog.i("기기에서 측정 시작됨 (음성 명령) → 공부 화면으로 이동")
+            beginStudy(fromDevice = true)
+            return
+        }
+        if (screen != Screen.STUDY) return
+        when (state) {
+            "PAUSED" -> if (!study.paused) {
+                AppLog.i("기기에서 측정 일시정지됨 (음성 명령)")
+                study = study.copy(paused = true, badStreak = 0, alert = false)
+            }
+            "MONITORING" -> if (study.paused) {
+                AppLog.i("기기에서 측정 다시 시작됨 (음성 명령)")
+                study = study.copy(paused = false, badStreak = 0, alert = false)
+            }
+            "IDLE" -> {
+                AppLog.i("기기에서 측정 종료됨 (음성 명령)")
+                stopStudy(fromDevice = true)
             }
         }
     }
@@ -449,10 +483,11 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         ticksSinceFlush = 0
     }
 
-    fun stopStudy() {
+    /** [fromDevice]: 기기에서 이미 종료된 경우 종료 요청을 다시 보내지 않는다 */
+    fun stopStudy(fromDevice: Boolean = false) {
         stopTicking()
         flushPending()
-        client?.session("stop")
+        if (!fromDevice) client?.session("stop")
         client?.setMode(Protocol.MODE_IDLE)
         val s = study
         val record = SessionRecord(

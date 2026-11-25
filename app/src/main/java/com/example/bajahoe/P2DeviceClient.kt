@@ -31,6 +31,13 @@ class P2DeviceClient(
     private var closed = false
     private var failures = 0
 
+    // 공부 중 기기 상태 (음성 명령으로 바뀐 걸 앱에 알리기 위함)
+    private var lastSystemState: String? = null
+    private var sawMonitoring = false
+
+    // 대기 중(홈 화면 등) 기기 상태. 음성으로 측정이 시작되면 앱이 공부 화면으로 이동한다
+    private var idleSystemState: String? = null
+
     // 기준 자세 측정
     private var calibrationId: String? = null
     private var restartAt = 0L
@@ -124,8 +131,28 @@ class P2DeviceClient(
         }
         val posture = body.optJSONObject("posture")
         when (currentMode) {
-            Protocol.MODE_MONITOR -> incoming.tryEmit(toStatus(posture))
+            Protocol.MODE_MONITOR -> {
+                // 공부 시작 직후에는 서버가 아직 IDLE일 수 있으니, MONITORING을 한 번 본 뒤부터 변화를 알린다
+                val sys = body.optString("system_state")
+                if (sys == "MONITORING") sawMonitoring = true
+                if (sawMonitoring && sys.isNotBlank() && sys != lastSystemState) {
+                    AppLog.i("기기 측정 상태 변경: $lastSystemState → $sys")
+                    incoming.tryEmit(DeviceMessage.Session(sys))
+                }
+                lastSystemState = sys
+                incoming.tryEmit(toStatus(posture))
+            }
             Protocol.MODE_CALIBRATE -> pollCalibration(body.optString("system_state"), posture)
+            Protocol.MODE_IDLE -> {
+                // 앱이 아니라 음성 명령으로 측정이 시작된 경우만 알린다 (측정 중이 아니었다가 측정 중으로 바뀜)
+                val sys = body.optString("system_state")
+                val prevIdle = idleSystemState
+                if (prevIdle != null && prevIdle != "MONITORING" && sys == "MONITORING") {
+                    AppLog.i("대기 중 기기 측정 시작 감지: $prevIdle → $sys")
+                    incoming.tryEmit(DeviceMessage.Session(sys))
+                }
+                idleSystemState = sys
+            }
         }
     }
 
@@ -213,10 +240,13 @@ class P2DeviceClient(
     override fun setMode(mode: String) {
         val prev = currentMode
         currentMode = mode
+        if (mode == Protocol.MODE_IDLE) idleSystemState = null
         when {
             mode == Protocol.MODE_CALIBRATE -> restartAt = 0L
             // 공부 중에도 내 모습을 볼 수 있게 미리보기를 켜 둔다
             mode == Protocol.MODE_MONITOR -> launchLocked {
+                sawMonitoring = false
+                lastSystemState = null
                 cancelCalibration()
                 enablePreview()
             }
@@ -255,11 +285,11 @@ class P2DeviceClient(
         if (previewRestore != null) return
         val cur = api("GET", "/settings")?.second?.optJSONObject("settings") ?: return
         val debug = cur.optBoolean("debug_mode")
-        val stream = cur.optBoolean("preview_stream_enabled")
-        if (debug && stream) return
+        // 새 서버는 미리보기 스위치를 메모리에만 두고 재부팅하면 꺼지므로,
+        // 저장된 설정이 켜져 있어 보여도 항상 켜기 요청을 보낸다
         val r = api("PUT", "/settings", JSONObject().put("debug_mode", true).put("preview_stream_enabled", true))
         if (r?.first == 200) {
-            previewRestore = JSONObject().put("debug_mode", debug).put("preview_stream_enabled", stream)
+            previewRestore = JSONObject().put("debug_mode", debug).put("preview_stream_enabled", false)
         }
     }
 

@@ -73,6 +73,12 @@ sealed interface DeviceMessage {
     data class Calibration(val ok: Boolean, val reason: String?) : DeviceMessage
 
     data class Error(val code: String, val message: String) : DeviceMessage
+
+    /**
+     * 기기 쪽 측정 상태 (P2 system_state: MONITORING / PAUSED / IDLE).
+     * 음성 명령("잠깐 멈춰줘", "공부 끝")처럼 앱 밖에서 바뀐 상태를 앱에 알린다
+     */
+    data class Session(val state: String) : DeviceMessage
 }
 
 object Protocol {
