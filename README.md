@@ -24,7 +24,7 @@
         <td align="center"><b><a href="https://github.com/EldaKo">고현아</a></b></td>
         <td align="center"><b><a href="https://github.com/Baek1213">김동현</a></b></td>
         <td align="center"><b><a href="https://github.com/seungmin0418">이승민</a></b></td>
-        <td align="center"><b><a href="https://github.com/jeahyuk296">이재혁</a></b></td>
+        <td align="center"><b><a href="https://github.com/jaehyuk296">이재혁</a></b></td>
     </tr>
     <tr>
         <td align="center"><b>팀장,프로젝트 기획 및 관리,산출물 작성</b></td>
