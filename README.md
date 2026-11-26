@@ -12,18 +12,18 @@
 
 <table width="50%" align="center">
     <tr>
-        <td align="center"><img src="https://avatars.githubusercontent.com/u/45908859?v=4" /></td>
+        <td align="center"><img src="https://avatars.githubusercontent.com/u/프로필이미지링크" /></td>
         <td align="center"><img src="https://avatars.githubusercontent.com/u/65843682?v=4" /></td>
-        <td align="center"><img src="https://avatars.githubusercontent.com/u/180899809?v=4"></td>
-        <td align="center"><img src="https://avatars.githubusercontent.com/u/180899809?v=4"></td>
-        <td align="center"><img src="https://avatars.githubusercontent.com/u/180899809?v=4"></td>
+        <td align="center"><img src="https://avatars.githubusercontent.com/u/프로필이미지링크"></td>
+        <td align="center"><img src="https://avatars.githubusercontent.com/u/프로필이미지링크"></td>
+        <td align="center"><img src="https://avatars.githubusercontent.com/u/프로필이미지링크"></td>
     </tr>
     <tr>
-        <td align="center"><b><a href="https://github.com/ggaa1">고도영</a></b></td>
+        <td align="center"><b><a href="https://github.com/heightZer0">고도영</a></b></td>
         <td align="center"><b><a href="https://github.com/EldaKo">고현아</a></b></td>
-        <td align="center"><b><a href="https://github.com/scp5008">김동현</a></b></td>
-        <td align="center"><b><a href="https://github.com/scp5008">이승민</a></b></td>
-        <td align="center"><b><a href="https://github.com/scp5008">이재혁</a></b></td>
+        <td align="center"><b><a href="https://github.com/아이디넣기">김동현</a></b></td>
+        <td align="center"><b><a href="https://github.com/ㅇㅇㄷ">이승민</a></b></td>
+        <td align="center"><b><a href="https://github.com/ㅇㅇㄷ">이재혁</a></b></td>
     </tr>
     <tr>
         <td align="center"><b>팀장</b></td>
