@@ -16,14 +16,14 @@
         <td align="center"><img src="https://avatars.githubusercontent.com/u/267644742?v=4" /></td>
         <td align="center"><img src="https://avatars.githubusercontent.com/u/65843682?v=4" /></td>
         <td align="center"><img src="https://avatars.githubusercontent.com/u/프로필이미지링크"></td>
-        <td align="center"><img src="https://avatars.githubusercontent.com/u/프로필이미지링크"></td>
+        <td align="center"><img src="https://avatars.githubusercontent.com/u/180899215?v=4"></td>
         <td align="center"><img src="https://avatars.githubusercontent.com/u/150820266?v=4"></td>
     </tr>
     <tr>
         <td align="center"><b><a href="https://github.com/heightZer0">고도영</a></b></td>
         <td align="center"><b><a href="https://github.com/EldaKo">고현아</a></b></td>
         <td align="center"><b><a href="https://github.com/아이디넣기">김동현</a></b></td>
-        <td align="center"><b><a href="https://github.com/ㅇㅇㄷ">이승민</a></b></td>
+        <td align="center"><b><a href="https://github.com/seungmin0418">이승민</a></b></td>
         <td align="center"><b><a href="https://github.com/jeahyuk296">이재혁</a></b></td>
     </tr>
     <tr>
