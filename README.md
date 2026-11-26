@@ -29,7 +29,7 @@
     <tr>
         <td align="center"><b>팀장,프로젝트 기획 및 관리,산출물 작성</b></td>
         <td align="center"><b>Android 앱 개발, UI/UX 설계, API 연결</b></td>
-        <td align="center"><b>프로젝트 발표자료 제작</b></td>
+        <td align="center"><b>프로젝트 기획 & 발표자료 제작</b></td>
         <td align="center"><b>LLM 개발, 파인튜닝 및 양자화, 음성 명령 처리</b></td>
         <td align="center"><b>AI 모델 개발, 자세 인식 및 판정, 백엔드 및 시스템 통합</b></td>
     </tr>
