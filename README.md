@@ -204,6 +204,8 @@ PROTOCOL.md             구버전 WebSocket 통신 규격
 - 자세 인식 모델, 음성 인터페이스, 백엔드 및 Android 애플리케이션 통합
 - 외부 AI 서버에 의존하지 않는 로컬 데이터 처리 환경 구축
 
+
+
 ## 🚀 향후 발전 방향
 
 ### 서비스 적용 분야 확대
@@ -214,8 +216,15 @@ PROTOCOL.md             구버전 WebSocket 통신 규격
 
 Orange Pi, 카메라, 마이크, 스피커를 하나의 전용 기기로 통합하여 설치 및 사용 편의성을 높이고, 실제 가정과 사무 공간에서 활용할 수 있는 제품으로 발전시킬 수 있습니다.
 
+
 ## 🎬 프로젝트 시연 영상
 
 대화형 데스크 페이스메이커의 주요 기능 및 실제 동작 모습을 확인할 수 있습니다.
 
-- [YouTube 시연 영상 바로가기]([유튜브_영상_URL](https://www.youtube.com/watch?v=6YYIxU6clss))
+[![프로젝트 시연 영상](https://img.youtube.com/vi/6YYIxU6clss/0.jpg)](https://www.youtube.com/watch?v=6YYIxU6clss)
+
+▲ 이미지를 클릭하면 YouTube 시연 영상으로 이동합니다.
+
+- [YouTube 시연 영상 바로가기](https://www.youtube.com/watch?v=6YYIxU6clss)
+
+---
