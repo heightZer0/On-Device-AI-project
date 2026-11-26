@@ -8,6 +8,33 @@
 - 앱은 **P2 서버 하나에만** 연결합니다. LLM과 음성은 P2가 부릅니다.
 - 카메라 영상은 자세설정 화면과 공부 화면의 미리보기에만 쓰이고, 저장하지 않습니다.
 - 공부 기록은 휴대폰 안에만 저장됩니다.
+## 👀 Members
+
+<table width="50%" align="center">
+    <tr>
+        <td align="center"><img src="https://avatars.githubusercontent.com/u/45908859?v=4" /></td>
+        <td align="center"><img src="https://avatars.githubusercontent.com/u/65843682?v=4" /></td>
+        <td align="center"><img src="https://avatars.githubusercontent.com/u/180899809?v=4"></td>
+        <td align="center"><img src="https://avatars.githubusercontent.com/u/180899809?v=4"></td>
+        <td align="center"><img src="https://avatars.githubusercontent.com/u/180899809?v=4"></td>
+    </tr>
+    <tr>
+        <td align="center"><b><a href="https://github.com/ggaa1">고도영</a></b></td>
+        <td align="center"><b><a href="https://github.com/EldaKo">고현아</a></b></td>
+        <td align="center"><b><a href="https://github.com/scp5008">김동현</a></b></td>
+        <td align="center"><b><a href="https://github.com/scp5008">이승민</a></b></td>
+        <td align="center"><b><a href="https://github.com/scp5008">이재혁</a></b></td>
+    </tr>
+    <tr>
+        <td align="center"><b>팀장</b></td>
+        <td align="center"><b>앱 개발, API 연결</b></td>
+        <td align="center"><b>김동현</b></td>
+        <td align="center"><b>이승민</b></td>
+        <td align="center"><b>이재혁</b></td>
+    </tr>
+</table>
+
+---
 
 ## 주요 기능
 
