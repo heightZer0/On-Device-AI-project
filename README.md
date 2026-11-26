@@ -1,4 +1,4 @@
-# 바자회 — 온디바이스 공부 자세 코칭
+# 🌱바자회 — 온디바이스 공부 자세 코칭
 
 공부하는 동안 카메라로 자세를 확인하고, 거북목 자세가 이어지면 **앱 경고와 기기 음성으로 알려 주는** 서비스입니다.
 자세 분석, 음성 인식, 음성 명령 해석(LLM), 음성 합성이 모두 책상 위 **Orange Pi 5 Plus 안에서** 처리됩니다. 인터넷이 없어도 동작합니다.
@@ -8,6 +8,7 @@
 - 앱은 **P2 서버 하나에만** 연결합니다. LLM과 음성은 P2가 부릅니다.
 - 카메라 영상은 자세설정 화면과 공부 화면의 미리보기에만 쓰이고, 저장하지 않습니다.
 - 공부 기록은 휴대폰 안에만 저장됩니다.
+  
 ## 👀 Members
 
 <table width="50%" align="center">
@@ -36,7 +37,7 @@
 
 ---
 
-## 주요 기능
+## 💻주요 기능
 
 | 화면 | 내용 |
 |---|---|
@@ -49,7 +50,9 @@
 | 설정 | 기기 스피커 볼륨·음소거·테스트 음성, 앱 글씨 크기 |
 | 프로필 | 닉네임, 연결된 기기 해제 |
 
-### 음성 명령과 앱 연동
+
+
+### 📢음성 명령과 앱 연동
 
 마이크에 말하면 기기가 음성으로 대답하고, 측정 상태가 바뀌면 **앱 화면도 따라갑니다.** 호출어는 없습니다.
 
@@ -65,13 +68,17 @@
 
 LLM은 학습한 16가지 명령만 다루며, 범위 밖 요청("날씨 어때?")은 지원하지 않는다고 안내합니다.
 
-## 개발 환경
+
+
+## 🌤️개발 환경
 
 - Android Studio, Kotlin, Jetpack Compose (Material 3)
 - minSdk 26 (Android 8.0) / targetSdk 37
 - 통신: OkHttp (REST, 카메라 미리보기)
 
-## 앱 실행
+
+
+## 🏃‍♂️‍➡️앱 실행
 
 1. Android Studio에서 이 폴더를 엽니다.
 2. Gradle 동기화가 끝나면 휴대폰을 USB로 연결하고 **Run**을 누릅니다.
@@ -80,7 +87,9 @@ LLM은 학습한 16가지 명령만 다루며, 범위 밖 요청("날씨 어때?
 
 APK 만들기: **Build → Generate App Bundles or APKs → Generate APKs** → `app/build/outputs/apk/debug/app-debug.apk`
 
-## 보드(Orange Pi 5 Plus) 실행
+
+
+## 🍊보드(Orange Pi 5 Plus) 실행
 
 보드 서버 코드는 팀 저장소 `develop` 브랜치에 있습니다. 서버 3개가 부팅 시 자동으로 **LLM → 음성 → P2** 순서로 켜지도록 `systemd`에 등록해 사용합니다.
 
@@ -100,7 +109,8 @@ curl -s 127.0.0.1:8000/api/v1/health                           # camera·pose·l
 sudo poweroff                                                  # 끄기 (파란 LED가 꺼진 뒤 전원 분리)
 ```
 
-### 보드 설정 메모
+
+### ⚙️보드 설정 메모
 
 | 항목 | 설정 |
 |---|---|
@@ -111,7 +121,9 @@ sudo poweroff                                                  # 끄기 (파란 
 | 에코 방지 | 스피커가 말한 뒤 `post_play_mute_ms`(500ms) 동안 마이크 입력 무시 |
 | 인식 로그 | `voice_test.yaml`에 `diagnostics: {enabled: true, log_stt_text: true}` (테스트용) |
 
-## 문제 해결
+
+
+## 🚨문제 해결
 
 | 증상 | 확인할 것 |
 |---|---|
@@ -123,7 +135,9 @@ sudo poweroff                                                  # 끄기 (파란 
 | 음성 명령에 403 | 음성 서버·P2·앱 토큰 불일치 |
 | 응답이 느림 | `journalctl -u bajahoe-voice \| grep voice_timing`으로 단계별 시간 확인, `fix_freq_rk3588.sh`로 NPU 속도 고정 |
 
-## 폴더 구조
+
+
+## 🗂️폴더 구조
 
 ```
 app/src/main/java/com/example/bajahoe/
@@ -142,7 +156,8 @@ mock_server/            PC용 모의 기기 서버 (구버전 WebSocket 규격)
 PROTOCOL.md             구버전 WebSocket 통신 규격
 ```
 
-## 앱 ↔ P2 서버 API
+
+## 🖇️앱 ↔ P2 서버 API
 
 | 앱 동작 | 서버 API |
 |---|---|
@@ -155,6 +170,5 @@ PROTOCOL.md             구버전 WebSocket 통신 규격
 | 테스트 음성 | `POST /test-sound` |
 
 모든 요청은 `Authorization: Bearer <기기 토큰>` 헤더를 사용합니다(`/health` 제외).
-
 자세 판정은 머리 상대 위치(거북목) 기준의 추정이며, 의학적 진단이 아닙니다.
  
