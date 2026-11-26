@@ -27,11 +27,11 @@
         <td align="center"><b><a href="https://github.com/jeahyuk296">이재혁</a></b></td>
     </tr>
     <tr>
-        <td align="center"><b>팀장</b></td>
-        <td align="center"><b>앱 개발, API 연결</b></td>
-        <td align="center"><b>김동현</b></td>
-        <td align="center"><b>이승민</b></td>
-        <td align="center"><b>이재혁</b></td>
+        <td align="center"><b>팀장,프로젝트 기획 및 관리,산출물 작성</b></td>
+        <td align="center"><b>Android 앱 개발, UI/UX 설계, API 연결</b></td>
+        <td align="center"><b>프로젝트 발표자료 제작</b></td>
+        <td align="center"><b>LLM 개발, 파인튜닝 및 양자화, 음성 명령 처리</b></td>
+        <td align="center"><b>AI 모델 개발, 자세 인식 및 판정, 백엔드 및 시스템 통합</b></td>
     </tr>
 </table>
 
@@ -226,5 +226,15 @@ Orange Pi, 카메라, 마이크, 스피커를 하나의 전용 기기로 통합�
 ▲ 이미지를 클릭하면 YouTube 시연 영상으로 이동합니다.
 
 - [YouTube 시연 영상 바로가기](https://www.youtube.com/watch?v=6YYIxU6clss)
+
+
+## 📋 프로젝트 정보
+
+- **프로젝트명:** 대화형 데스크 페이스메이커 (Desk Pacemaker)
+- **개발 기간:** 2026.09 ~ 2026.11
+- **팀명:** 바자회 (바른자세비공식협회)
+- **참여 인원:** 5명
+- **프로젝트 유형:** 2026학년도 2학기 모바일 시스템 응용 기업연계 프로젝트
+- **연계 기업:** 마음AI
 
 ---
