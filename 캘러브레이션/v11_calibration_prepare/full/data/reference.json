@@ -1,0 +1,2502 @@
+[
+  {
+    "query": "120분 후에 휴식 알림 설정해줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1540
+  },
+  {
+    "query": "한쪽 어깨가 뭉쳐서 불편해",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+    "train_line": 2330
+  },
+  {
+    "query": "작업을 시작하고 지금까지 몇 시간 앉아 있었지",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 2094
+  },
+  {
+    "query": "목이 아픈 건 아니고 머리 위치만 확인해줘",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 252
+  },
+  {
+    "query": "지금부터 공부하는 동안 자세를 계속 봐줘",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 2111
+  },
+  {
+    "query": "목이 뻐근해요 목 스트레칭 방법 알려줘요",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 859
+  },
+  {
+    "query": "집중 모드 마쳐주세요",
+    "expected_command": "<monitor>(command=\"stop\")<suda_end>",
+    "train_line": 612
+  },
+  {
+    "query": "이어서 계속해줘",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 339
+  },
+  {
+    "query": "어깨 스트레칭 추천해줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+    "train_line": 933
+  },
+  {
+    "query": "의자에 앉아서 허리 푸는 동작 추천해줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 1043
+  },
+  {
+    "query": "지금 앉은 모습이 괜찮은지 확인 해주세요",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 127
+  },
+  {
+    "query": "계속 몸이 불편해",
+    "expected_command": "<clarify>(command=\"body_part\")<suda_end>",
+    "train_line": 1145
+  },
+  {
+    "query": "이번 공부를 마치니 모니터링도 끝내줘",
+    "expected_command": "<monitor>(command=\"stop\")<suda_end>",
+    "train_line": 2278
+  },
+  {
+    "query": "무릎을 푸는 동작 알려줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 1988
+  },
+  {
+    "query": "공부 잠깐 멈춰줘",
+    "expected_command": "<monitor>(command=\"pause\")<suda_end>",
+    "train_line": 428
+  },
+  {
+    "query": "뭉친 데가 어딘지 모르겠네",
+    "expected_command": "<clarify>(command=\"body_part\")<suda_end>",
+    "train_line": 2528
+  },
+  {
+    "query": "몸이 좀 뻐근하고 뻣뻣한데요",
+    "expected_command": "<clarify>(command=\"body_part\")<suda_end>",
+    "train_line": 1177
+  },
+  {
+    "query": "자세 측정 실행해줘",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 363
+  },
+  {
+    "query": "한 군데가 당기는데 위치를 모르겠어",
+    "expected_command": "<clarify>(command=\"body_part\")<suda_end>",
+    "train_line": 1247
+  },
+  {
+    "query": "무릎 정렬이 맞는지 자세를 봐줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2408
+  },
+  {
+    "query": "쉬어야 할 시점이 지났는지 확인해줘",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 1399
+  },
+  {
+    "query": "지금 진행 중인 자세 모니터링을 종료해줘",
+    "expected_command": "<monitor>(command=\"stop\")<suda_end>",
+    "train_line": 604
+  },
+  {
+    "query": "허리가 불편해요 간단한 스트레칭 알려주세요",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 1111
+  },
+  {
+    "query": "허리가 뻐근한데 스트레칭 방법 알려줘요",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 1113
+  },
+  {
+    "query": "학습 모드 시작해주세요",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 406
+  },
+  {
+    "query": "귀와 어깨의 상대 위치가 어깨보다 앞에 있는지 확인 해줘",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 188
+  },
+  {
+    "query": "아직 더 공부해도 괜찮은 상태인지 알려줘",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 1402
+  },
+  {
+    "query": "허리가 불편하니 허리 운동 안내해줄래",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 2516
+  },
+  {
+    "query": "나 지금 자세 괜찮아?",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 2
+  },
+  {
+    "query": "학습 모드를 다시 진행해줘",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 2593
+  },
+  {
+    "query": "허리가 뻣뻣해서 스트레칭 해보려 해요 어때요?",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 1139
+  },
+  {
+    "query": "한 시간 후에 휴식 알림 해줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1842
+  },
+  {
+    "query": "나 앉은 모양 괜찮니",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 2470
+  },
+  {
+    "query": "어디서 뻐근한지 모르겠어",
+    "expected_command": "<clarify>(command=\"body_part\")<suda_end>",
+    "train_line": 1208
+  },
+  {
+    "query": "좀 불편한데 정확히 어디인지 모르겠어",
+    "expected_command": "<clarify>(command=\"body_part\")<suda_end>",
+    "train_line": 1226
+  },
+  {
+    "query": "뒷목이 뻐근한데 풀 동작 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 773
+  },
+  {
+    "query": "어깨가 불편하니 어깨 스트레칭 하나 안내해줄래",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+    "train_line": 2586
+  },
+  {
+    "query": "자세 모니터링 잠깐 중단해줘",
+    "expected_command": "<monitor>(command=\"pause\")<suda_end>",
+    "train_line": 458
+  },
+  {
+    "query": "어깨 스트레칭 안내해주세요",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+    "train_line": 929
+  },
+  {
+    "query": "공부하다가 중간에 쉬라고 알려줘",
+    "expected_command": "<clarify>(command=\"time\")<suda_end>",
+    "train_line": 1922
+  },
+  {
+    "query": "목 뒤쪽을 풀어주는 스트레칭 추천해줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 783
+  },
+  {
+    "query": "귀랑 어깨 위치가 맞는지 봐줘",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 2072
+  },
+  {
+    "query": "집중을 잠깐 멈출 때가 됐는지 말해주세요",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 1479
+  },
+  {
+    "query": "한 시간 이십 분 후에 휴식 알림 설정해줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1837
+  },
+  {
+    "query": "어디를 풀어야 하는지 잘 모르겠어",
+    "expected_command": "<clarify>(command=\"body_part\")<suda_end>",
+    "train_line": 1204
+  },
+  {
+    "query": "2시간 10분 지나면 쉬라고 말해줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1593
+  },
+  {
+    "query": "언제부터 측정을 시작했는지 알려줘",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 1291
+  },
+  {
+    "query": "지금부터 1분 후에 휴식 알림 맞춰줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1745
+  },
+  {
+    "query": "발목을 풀 수 있는 운동 추천해줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2417
+  },
+  {
+    "query": "어깨가 결리면 어떻게 해야 해",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+    "train_line": 943
+  },
+  {
+    "query": "집중 모드 일시정지해주세요",
+    "expected_command": "<monitor>(command=\"pause\")<suda_end>",
+    "train_line": 494
+  },
+  {
+    "query": "자세 측정 일시정지해줘",
+    "expected_command": "<monitor>(command=\"pause\")<suda_end>",
+    "train_line": 465
+  },
+  {
+    "query": "내 머리가 앞으로 나와 있는지 확인해줘",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 209
+  },
+  {
+    "query": "오늘 공부 세션 동안 자세 측정 유지해줘",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 2244
+  },
+  {
+    "query": "금요일 오후에 휴식 알림 부탁해",
+    "expected_command": "<clarify>(command=\"time\")<suda_end>",
+    "train_line": 2376
+  },
+  {
+    "query": "책상 앞에서 할 수 있는 허리 스트레칭 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 1050
+  },
+  {
+    "query": "목이 화면 앞으로 빠진거 가타 확인 좀",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 2499
+  },
+  {
+    "query": "허리 주변이 결리는데 동작 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 1089
+  },
+  {
+    "query": "자세 코칭과 함께 공부 시작해줘",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 373
+  },
+  {
+    "query": "뭉친 어깨를 푸는 동작 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+    "train_line": 904
+  },
+  {
+    "query": "목덜미가 굳었는데 가벼운 스트레칭 추천해줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 819
+  },
+  {
+    "query": "자세 측정을 잠시 중단해줘",
+    "expected_command": "<monitor>(command=\"pause\")<suda_end>",
+    "train_line": 470
+  },
+  {
+    "query": "뒷목을 풀어주는 동작 추천해줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 763
+  },
+  {
+    "query": "현재 자세 전체 상태가 어떤지 말해줘",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 156
+  },
+  {
+    "query": "자세 코칭 그만해줘",
+    "expected_command": "<monitor>(command=\"stop\")<suda_end>",
+    "train_line": 595
+  },
+  {
+    "query": "어깨가 뻐근할 때 할 스트레칭 추천해주세요",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+    "train_line": 973
+  },
+  {
+    "query": "언제부터 앉아 있었는지 계산해주세요",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 1278
+  },
+  {
+    "query": "공부 시작한 뒤로 앉아 있던 시간을 보여줘",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 1251
+  },
+  {
+    "query": "허리 주변을 푸는 방법 알려주세요",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 1085
+  },
+  {
+    "query": "목이 뻐근하고 뻣뻣해서 힘들어요 간단한 동작 있나요?",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 845
+  },
+  {
+    "query": "지난주 자세 기록을 보여줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2023
+  },
+  {
+    "query": "한 시간 사십 분 뒤에 쉬라고 알려줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1812
+  },
+  {
+    "query": "내 상태 좀 어떻게 해봐",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 2169
+  },
+  {
+    "query": "지금부터 십오 분 지나면 자리에서 일어나라고 말해줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1786
+  },
+  {
+    "query": "오늘 처음 앉은 뒤 지금까지 경과 시간이 얼마야",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 2096
+  },
+  {
+    "query": "오른쪽 어깨가 뻐근한데 간단한 스트레칭 좀 해볼까?",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+    "train_line": 992
+  },
+  {
+    "query": "오래 앉은 뒤 허리만 집중해서 풀고 싶어",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 1038
+  },
+  {
+    "query": "공부 끝나고 할 전체 스트레칭 추천해줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"0\")<suda_end>",
+    "train_line": 2303
+  },
+  {
+    "query": "시간만 말하지 말고 지금 쉬어야 하는지 알려줘",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 1400
+  },
+  {
+    "query": "조금 있다 이어갈 테니 자세 감지만 멈춰줘",
+    "expected_command": "<monitor>(command=\"pause\")<suda_end>",
+    "train_line": 489
+  },
+  {
+    "query": "내 귀 위치가 어깨 선보다 앞인지 봐줘",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 2065
+  },
+  {
+    "query": "1시간 50분 뒤에 쉬라고 알려줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1574
+  },
+  {
+    "query": "내 상체 자세가 이상한지 확인 해주세요",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 19
+  },
+  {
+    "query": "앉아 있던 시간을 참고해서 휴식 필요 여부만 알려줘",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 2365
+  },
+  {
+    "query": "조금 있다가 잠깐 쉬라고 말해줘",
+    "expected_command": "<clarify>(command=\"time\")<suda_end>",
+    "train_line": 1960
+  },
+  {
+    "query": "앉은 자세 분석을 잠시 멈춰줘",
+    "expected_command": "<monitor>(command=\"pause\")<suda_end>",
+    "train_line": 449
+  },
+  {
+    "query": "다시 해줘",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 1859
+  },
+  {
+    "query": "앞으로 사십삼 분 후에 나한테 알려줄래",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 2763
+  },
+  {
+    "query": "조금 시간이 지난 다음 쉬라고 알려줘",
+    "expected_command": "<clarify>(command=\"time\")<suda_end>",
+    "train_line": 2147
+  },
+  {
+    "query": "지금 세션을 잠깐만 멈춰줘",
+    "expected_command": "<monitor>(command=\"pause\")<suda_end>",
+    "train_line": 493
+  },
+  {
+    "query": "휴식할 때가 됐는지 판단해줘",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 1524
+  },
+  {
+    "query": "귀와 어깨의 상대 위치가 기준보다 앞으로 나왔는지 확인 해줘",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 180
+  },
+  {
+    "query": "나중에 쉬라고 알려줘",
+    "expected_command": "<clarify>(command=\"time\")<suda_end>",
+    "train_line": 1927
+  },
+  {
+    "query": "허리 디스크인지 진단해줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2036
+  },
+  {
+    "query": "자세 측정 기능을 켜고 계속 확인해줘",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 2246
+  },
+  {
+    "query": "뒷목을 천천히 풀 수 있는 스트레칭 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 754
+  },
+  {
+    "query": "전신 스트레칭 추천해줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"0\")<suda_end>",
+    "train_line": 711
+  },
+  {
+    "query": "지금 목 위치가 앞쪽으로 밀렸는지 확인해주세요",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 268
+  },
+  {
+    "query": "오래 앉은 뒤 목을 푸는 동작 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 873
+  },
+  {
+    "query": "지금 세션이 얼마나 진행됐는지 말해주세요",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 1328
+  },
+  {
+    "query": "지난달 착석 시간 합계를 알려줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2022
+  },
+  {
+    "query": "자세 모니터링 시작해주세요",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 353
+  },
+  {
+    "query": "머리와 어깨의 위치 관계가 너무 앞으로 빠졌는지 확인 해주세요",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 237
+  },
+  {
+    "query": "허리가 굳은 느낌이에요 뭐 하면 돼요?",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 1109
+  },
+  {
+    "query": "어깨가 당기는 느낌이라 풀어야겠어",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+    "train_line": 2335
+  },
+  {
+    "query": "특정 부위 말고 몸 전체 스트레칭을 추천해줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"0\")<suda_end>",
+    "train_line": 732
+  },
+  {
+    "query": "마흔 분 지나면 알림 한 번 보내줘",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 2599
+  },
+  {
+    "query": "영 분 뒤에 휴식 알림 설정해줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 2576
+  },
+  {
+    "query": "학습을 재개하려는데 자세 기능을 어떻게 할지 물어봐줘",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 2406
+  },
+  {
+    "query": "양쪽 어깨가 굳었는데 앉아서 풀고 싶어",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+    "train_line": 915
+  },
+  {
+    "query": "저녁쯤 쉬라고 알려줘",
+    "expected_command": "<clarify>(command=\"time\")<suda_end>",
+    "train_line": 2158
+  },
+  {
+    "query": "내가 책상에 붙어 있던 시간이 얼마나 되지",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 2100
+  },
+  {
+    "query": "쉬어야 할 때 쉬라고 알려줘",
+    "expected_command": "<clarify>(command=\"time\")<suda_end>",
+    "train_line": 1935
+  },
+  {
+    "query": "완전히 끝내지 말고 잠깐 중단해줘",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 2261
+  },
+  {
+    "query": "몸이 찌뿌둥한데 정확한 부위는 모르겠어",
+    "expected_command": "<clarify>(command=\"body_part\")<suda_end>",
+    "train_line": 1180
+  },
+  {
+    "query": "전신을 스트레칭하는 방법이 있나요?",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"0\")<suda_end>",
+    "train_line": 714
+  },
+  {
+    "query": "지금 몸이 찌뿌둥해",
+    "expected_command": "<clarify>(command=\"body_part\")<suda_end>",
+    "train_line": 1237
+  },
+  {
+    "query": "지금 쉬어야 하는지 판단해줘",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 1448
+  },
+  {
+    "query": "손목 운동을 추천해줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2414
+  },
+  {
+    "query": "오늘 오전 열 시에 쉬라고 알림 해줄래",
+    "expected_command": "<clarify>(command=\"time\")<suda_end>",
+    "train_line": 2564
+  },
+  {
+    "query": "지금부터 이십 분 뒤에 쉬는 시간이라고 알려주세요",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1788
+  },
+  {
+    "query": "오래 앉은 뒤 허리를 푸는 동작 안내해주세요",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 1033
+  },
+  {
+    "query": "지금 내 머리 상대 위치를 확인해줘",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 2069
+  },
+  {
+    "query": "현재 공부 기록을 유지한 채 측정을 멈춰줘",
+    "expected_command": "<monitor>(command=\"pause\")<suda_end>",
+    "train_line": 521
+  },
+  {
+    "query": "불편하긴 한데 목인지 어깨인지 모르겠어",
+    "expected_command": "<clarify>(command=\"body_part\")<suda_end>",
+    "train_line": 1184
+  },
+  {
+    "query": "한 시간 십칠 분 뒤에 쉬라고 알림 해줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 2575
+  },
+  {
+    "query": "이어서 할 수 있게 측정만 잠깐 멈춰줘",
+    "expected_command": "<monitor>(command=\"pause\")<suda_end>",
+    "train_line": 452
+  },
+  {
+    "query": "허리가 뻐근할 때 할 스트레칭 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 1122
+  },
+  {
+    "query": "오늘 공부는 완료했으니 측정도 끝내줘",
+    "expected_command": "<monitor>(command=\"stop\")<suda_end>",
+    "train_line": 2287
+  },
+  {
+    "query": "목이 굳어서 풀 수 있는 스트레칭을 배우고 싶어",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 2688
+  },
+  {
+    "query": "몸이 불편한데 위치를 잘 모르겠어",
+    "expected_command": "<clarify>(command=\"body_part\")<suda_end>",
+    "train_line": 2345
+  },
+  {
+    "query": "자세 코칭 잠깐 멈춰줘",
+    "expected_command": "<monitor>(command=\"pause\")<suda_end>",
+    "train_line": 474
+  },
+  {
+    "query": "오늘 앉아 있던 누적 시간이 궁금해",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 2108
+  },
+  {
+    "query": "언제인지는 모르겠는데 휴식 알림 설정해줘",
+    "expected_command": "<clarify>(command=\"time\")<suda_end>",
+    "train_line": 2159
+  },
+  {
+    "query": "지금 몸이 뻐근해요",
+    "expected_command": "<clarify>(command=\"body_part\")<suda_end>",
+    "train_line": 1236
+  },
+  {
+    "query": "현재 모니터링 세션을 종료하고 기록해줘",
+    "expected_command": "<monitor>(command=\"stop\")<suda_end>",
+    "train_line": 634
+  },
+  {
+    "query": "목이 아니라 허리 뒤쪽이 뻐근해",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 1021
+  },
+  {
+    "query": "전체 스트레칭 안내해주세요",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"0\")<suda_end>",
+    "train_line": 721
+  },
+  {
+    "query": "현재 앉은 자세에서 기울어진 곳이 있는지 확인해줘",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 151
+  },
+  {
+    "query": "뒷목 말고 허리 쪽이 결려",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 1015
+  },
+  {
+    "query": "할 수 있는 스트레칭 방법 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"0\")<suda_end>",
+    "train_line": 2294
+  },
+  {
+    "query": "한 시간 십오 분이 지나면 약을 먹으라고 알려줄래",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2608
+  },
+  {
+    "query": "어깨 쪽으로 뭔가 좀 해주면 안 될까",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 2622
+  },
+  {
+    "query": "내 목이 화면을 향해 기울어진 위치인지 봐줄 수 있어",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 2690
+  },
+  {
+    "query": "30분 뒤에 쉬라고 해줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1602
+  },
+  {
+    "query": "지금 어딘가 뻣뻣해요",
+    "expected_command": "<clarify>(command=\"body_part\")<suda_end>",
+    "train_line": 1244
+  },
+  {
+    "query": "허리가 뻐근해 스트레칭 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 1128
+  },
+  {
+    "query": "지금 바로 쉬어야 할 정도인지 확인해줘",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 1440
+  },
+  {
+    "query": "부위 상관없이 기본 스트레칭 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"0\")<suda_end>",
+    "train_line": 2296
+  },
+  {
+    "query": "목이 뻣뻣한데 할 수 있는 동작 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 2082
+  },
+  {
+    "query": "현재 쉬어야 하는 때인지 확인해줘",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 1497
+  },
+  {
+    "query": "어깨가 굳은 느낌이야 어떻게 풀 수 있나요?",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+    "train_line": 955
+  },
+  {
+    "query": "목이 결릴 때 하는 스트레칭 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 838
+  },
+  {
+    "query": "집중 모드 종료해줘",
+    "expected_command": "<monitor>(command=\"stop\")<suda_end>",
+    "train_line": 614
+  },
+  {
+    "query": "한 번만 내 자세를 전체적으로 확인해줘",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 144
+  },
+  {
+    "query": "지금 계속 앉아 있어도 되는지 알려줘",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 1435
+  },
+  {
+    "query": "뒷목이 결려서 스트레칭이 필요해",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 764
+  },
+  {
+    "query": "자세 확인 기능을 잠깐 보류해줘",
+    "expected_command": "<monitor>(command=\"pause\")<suda_end>",
+    "train_line": 477
+  },
+  {
+    "query": "양쪽 어깨가 뻐근한데 운동 추천해줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+    "train_line": 2325
+  },
+  {
+    "query": "지금 내 자세가 괜찮은지 확인 해주세요",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 102
+  },
+  {
+    "query": "몸 한쪽이 결리는 느낌인데 부위는 잘 모르겠어",
+    "expected_command": "<clarify>(command=\"body_part\")<suda_end>",
+    "train_line": 1162
+  },
+  {
+    "query": "공부 종료해줘",
+    "expected_command": "<monitor>(command=\"stop\")<suda_end>",
+    "train_line": 541
+  },
+  {
+    "query": "한 시간 십 분 있다가 스피커로 쉬는 시간을 알려줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1819
+  },
+  {
+    "query": "쉬고 있던 자세 감지를 다시 시작해줘",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 330
+  },
+  {
+    "query": "한 시간 삼십오 분 뒤쯤 말해주면 좋겠어",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 2616
+  },
+  {
+    "query": "삼십오 분 후에 휴식 알림을 설정해줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1691
+  },
+  {
+    "query": "전체 스트레칭 보여줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"0\")<suda_end>",
+    "train_line": 720
+  },
+  {
+    "query": "지금까지 앉아 있던 시간이 얼마인지 확인해주세요",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 1345
+  },
+  {
+    "query": "앉아서 하는 스트레칭 안내해주세요",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"0\")<suda_end>",
+    "train_line": 686
+  },
+  {
+    "query": "목 쪽이 뭉쳤는데 앉아서 할 운동 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 2312
+  },
+  {
+    "query": "현재 연속으로 앉아 있는 시간이 몇 분이야",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 1353
+  },
+  {
+    "query": "책상 앞에 있었던 시간이 지금 몇 시간이야",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 2104
+  },
+  {
+    "query": "종료하지 말고 자세 분석만 잠깐 쉬자",
+    "expected_command": "<monitor>(command=\"pause\")<suda_end>",
+    "train_line": 490
+  },
+  {
+    "query": "화면 쪽으로 고개를 내밀고 있는지 확인해줘",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 2061
+  },
+  {
+    "query": "기준 자세 등록 말고 자세 측정만 시작해줘",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 319
+  },
+  {
+    "query": "현재 착석 시간을 기준으로 쉬어야 할지 알려줘",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 1500
+  },
+  {
+    "query": "금요일 점심에 쉬라고 말해줘",
+    "expected_command": "<clarify>(command=\"time\")<suda_end>",
+    "train_line": 1972
+  },
+  {
+    "query": "자세 측정 다시 켜줘",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 361
+  },
+  {
+    "query": "그거 좀 봐줘",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 1853
+  },
+  {
+    "query": "알맞은 때가 되면 휴식 알림 해줘",
+    "expected_command": "<clarify>(command=\"time\")<suda_end>",
+    "train_line": 2156
+  },
+  {
+    "query": "더 이상 이어서 측정하지 않을 테니 끝내줘",
+    "expected_command": "<monitor>(command=\"stop\")<suda_end>",
+    "train_line": 545
+  },
+  {
+    "query": "양쪽 어깨가 뭉친 느낌인데 풀어줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+    "train_line": 920
+  },
+  {
+    "query": "측정을 종료하고 결과를 확인할게",
+    "expected_command": "<monitor>(command=\"stop\")<suda_end>",
+    "train_line": 2276
+  },
+  {
+    "query": "굳은 어깨를 풀어주는 운동 안내해줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+    "train_line": 891
+  },
+  {
+    "query": "지금 스트레칭이 필요해",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"0\")<suda_end>",
+    "train_line": 729
+  },
+  {
+    "query": "허리가 결릴 때 하는 스트레칭 안내해주세요",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 1099
+  },
+  {
+    "query": "이번 집중을 종료할래",
+    "expected_command": "<monitor>(command=\"stop\")<suda_end>",
+    "train_line": 570
+  },
+  {
+    "query": "잠시 후에 쉬는 시간이라고 말해줘",
+    "expected_command": "<clarify>(command=\"time\")<suda_end>",
+    "train_line": 1948
+  },
+  {
+    "query": "내일 오전 아홉 시에 휴식 알림 맞춰줘",
+    "expected_command": "<clarify>(command=\"time\")<suda_end>",
+    "train_line": 2373
+  },
+  {
+    "query": "목이 뻐근할 때 할 스트레칭 추천해줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 855
+  },
+  {
+    "query": "허리 근육을 풀 수 있는 스트레칭만 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 1056
+  },
+  {
+    "query": "지금 자세에 한쪽으로 치우친 곳은 없는지 알려줘",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 141
+  },
+  {
+    "query": "허리가 뻐근해 풀어줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 1129
+  },
+  {
+    "query": "자세 코칭을 완전히 끄고 세션을 마쳐줘",
+    "expected_command": "<monitor>(command=\"stop\")<suda_end>",
+    "train_line": 602
+  },
+  {
+    "query": "한 시간 십 분 뒤에 휴식 알림을 설정해줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1818
+  },
+  {
+    "query": "오늘 이 세션에서 앉은 시간은 얼마야",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 1306
+  },
+  {
+    "query": "내 머리 위치가 앞쪽으로 이동했는지 확인 해줘",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 201
+  },
+  {
+    "query": "오래 타이핑했더니 어깨가 결려",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+    "train_line": 988
+  },
+  {
+    "query": "오래 앉았더니 허리가 뻐근하네",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 2511
+  },
+  {
+    "query": "내 몸 상태에 맞는 자세 기능을 해줘",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 2403
+  },
+  {
+    "query": "어깨 스트레칭 가르쳐줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+    "train_line": 926
+  },
+  {
+    "query": "목 도와줘",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 1861
+  },
+  {
+    "query": "어깨가 불편해서 간단한 스트레칭 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+    "train_line": 961
+  },
+  {
+    "query": "계속 몸을 좀 풀고 싶어요",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"0\")<suda_end>",
+    "train_line": 650
+  },
+  {
+    "query": "목 쪽 좀 처리해줄래",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 2533
+  },
+  {
+    "query": "내 자세가 어떤 상태인지 확인 해줘",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 54
+  },
+  {
+    "query": "얼마나 오래 앉아 있었는지 확인해줘",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 1304
+  },
+  {
+    "query": "공부 시작부터 지금까지 착석 시간이 얼마나 돼",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 2092
+  },
+  {
+    "query": "턱 자세가 올바른지 확인해줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2429
+  },
+  {
+    "query": "결과 화면 이동은 하지 말고 측정 세션만 종료해줘",
+    "expected_command": "<monitor>(command=\"stop\")<suda_end>",
+    "train_line": 527
+  },
+  {
+    "query": "일시정지한 자세 측정을 재개해줘",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 352
+  },
+  {
+    "query": "30분 후에 휴식 알림 설정해줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1607
+  },
+  {
+    "query": "60분 후에 휴식 알림 설정해줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1636
+  },
+  {
+    "query": "몸을 풀어주는 스트레칭 어떻게 해야 할지 조언 좀 주시겠어요?",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"0\")<suda_end>",
+    "train_line": 678
+  },
+  {
+    "query": "목이 결리니까 앉아서 풀 동작 추천해줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 2078
+  },
+  {
+    "query": "앞으로 사십삼 분 후에 휴식하라고 나한테 알려줄래",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 2764
+  },
+  {
+    "query": "허리가 뻐근해서 가볍게 풀고 싶어",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 1131
+  },
+  {
+    "query": "모레 오전에 잠시 휴식하라고 알림을 줘",
+    "expected_command": "<clarify>(command=\"time\")<suda_end>",
+    "train_line": 2675
+  },
+  {
+    "query": "몸이 결리는데 어디인지는 모르겠어",
+    "expected_command": "<clarify>(command=\"body_part\")<suda_end>",
+    "train_line": 2339
+  },
+  {
+    "query": "몸 전체를 푸는 동작 알려주세요",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"0\")<suda_end>",
+    "train_line": 670
+  },
+  {
+    "query": "5분 후에 휴식 알림 설정해줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1631
+  },
+  {
+    "query": "팔 끝의 손목 자세를 한 번만 봐줄래",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2701
+  },
+  {
+    "query": "앉은 자세 분석 종료해줘",
+    "expected_command": "<monitor>(command=\"stop\")<suda_end>",
+    "train_line": 558
+  },
+  {
+    "query": "허리가 결리는 느낌이야 어떻게 풀어",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 1092
+  },
+  {
+    "query": "자세 모니터링을 다시 시작해줘",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 2121
+  },
+  {
+    "query": "자세 측정 끝내줘",
+    "expected_command": "<monitor>(command=\"stop\")<suda_end>",
+    "train_line": 587
+  },
+  {
+    "query": "집중 모드 잠깐 멈춰줘",
+    "expected_command": "<monitor>(command=\"pause\")<suda_end>",
+    "train_line": 496
+  },
+  {
+    "query": "현재 자세가 제대로 유지되는지 확인 해줘",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 169
+  },
+  {
+    "query": "자세 확인해줘",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 1899
+  },
+  {
+    "query": "내 목 위치가 주의가 필요한 상태인지 확인 해주세요",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 222
+  },
+  {
+    "query": "집중 중인 자세 모니터링만 잠시 멈춰줘",
+    "expected_command": "<monitor>(command=\"pause\")<suda_end>",
+    "train_line": 508
+  },
+  {
+    "query": "지금 내 자세가 이상 없이 유지되고 있는지 알려줘",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 109
+  },
+  {
+    "query": "내 자세가 바른지 확인 해주세요",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 51
+  },
+  {
+    "query": "몸이 불편한데 어느 부위인지 잘 모르겠어",
+    "expected_command": "<clarify>(command=\"body_part\")<suda_end>",
+    "train_line": 1171
+  },
+  {
+    "query": "앉은 채로 할 어깨 스트레칭 알려주세요",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+    "train_line": 913
+  },
+  {
+    "query": "한 시간 삼십오 분 뒤쯤 쉬라고 말해주면 좋겠어",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 2615
+  },
+  {
+    "query": "몸이 뭉친 것 같은데 어디를 풀어야 할지 모르겠어",
+    "expected_command": "<clarify>(command=\"body_part\")<suda_end>",
+    "train_line": 2344
+  },
+  {
+    "query": "무엇을 해야 할지 모르겠어",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 1876
+  },
+  {
+    "query": "목덜미가 굳은 느낌인데 풀어주는 방법 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 821
+  },
+  {
+    "query": "머리와 어깨의 위치 관계가 어깨보다 앞에 있는지 확인 해줘",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 243
+  },
+  {
+    "query": "집중 모드 활성화해주세요",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 395
+  },
+  {
+    "query": "앞으로 오십이 분 뒤에 버스를 타러 가라고 알려 줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2666
+  },
+  {
+    "query": "허리와 어깨 스트레칭을 동시에 추천해줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2451
+  },
+  {
+    "query": "왼쪽 어깨가 뭉쳤는데 풀 동작 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+    "train_line": 999
+  },
+  {
+    "query": "내가 바른 자세를 유지하고 있는지 확인해줘",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 71
+  },
+  {
+    "query": "지금 목 위치가 기준보다 앞으로 나왔는지 확인 해주세요",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 263
+  },
+  {
+    "query": "지금 계속 공부해도 되는지 판단해줘",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 1427
+  },
+  {
+    "query": "어깨가 뭉치는 게 있어서 스트레칭 방법 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+    "train_line": 958
+  },
+  {
+    "query": "이따가 잠깐 쉴 수 있게 알림 부탁해",
+    "expected_command": "<clarify>(command=\"time\")<suda_end>",
+    "train_line": 2566
+  },
+  {
+    "query": "현재 시점에서 사십오 분 후에 휴식 알림 줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1846
+  },
+  {
+    "query": "현재 착석 시간을 보면 쉬어야 하는지 말해주세요",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 1502
+  },
+  {
+    "query": "이 기능 좀 봐줘",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 1886
+  },
+  {
+    "query": "좀 뒤에 휴식 알림을 맞춰줘",
+    "expected_command": "<clarify>(command=\"time\")<suda_end>",
+    "train_line": 1966
+  },
+  {
+    "query": "머리 위치 어때요?",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 227
+  },
+  {
+    "query": "현재 착석 시간이 얼마인지 알 수 있을까?",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 1358
+  },
+  {
+    "query": "휴식할 시점인지 말해줘",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 1527
+  },
+  {
+    "query": "고개 주변이 불편해서 목 운동 추천해줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 738
+  },
+  {
+    "query": "다시 카메라 분석을 시작해줘",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 323
+  },
+  {
+    "query": "몸이 찌뿌둥한데 어느 곳부터 말해야 할지 모르겠어",
+    "expected_command": "<clarify>(command=\"body_part\")<suda_end>",
+    "train_line": 1179
+  },
+  {
+    "query": "내 상체 자세가 주의할 부분이 있는지 확인 해줘",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 24
+  },
+  {
+    "query": "이제 공부하니 자세 확인 기능도 시작해줘",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 2234
+  },
+  {
+    "query": "모니터링만 잠시 정지해줘",
+    "expected_command": "<monitor>(command=\"pause\")<suda_end>",
+    "train_line": 438
+  },
+  {
+    "query": "머리가 기준 위치에서 앞으로 갔는지 체크해줘",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 2073
+  },
+  {
+    "query": "앉아서 할 수 있는 전신 스트레칭 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"0\")<suda_end>",
+    "train_line": 2301
+  },
+  {
+    "query": "오늘 자세 측정을 완전히 끝내줘",
+    "expected_command": "<monitor>(command=\"stop\")<suda_end>",
+    "train_line": 567
+  },
+  {
+    "query": "귀와 어깨의 상대 위치가 너무 앞으로 빠졌는지 확인 해주세요",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 181
+  },
+  {
+    "query": "지금 상태 좀 봐줘",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 1912
+  },
+  {
+    "query": "90분 후에 휴식 알림 설정해줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1652
+  },
+  {
+    "query": "몇 분 뒤 알림 말고 현재 휴식 여부를 판단해줘",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 2139
+  },
+  {
+    "query": "공부하다가 따라 할 허리 스트레칭 보여줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 1004
+  },
+  {
+    "query": "나중에 잠깐 쉬라고 말해줘",
+    "expected_command": "<clarify>(command=\"time\")<suda_end>",
+    "train_line": 1928
+  },
+  {
+    "query": "10분 후에 쉬라고 말해줄래?",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1536
+  },
+  {
+    "query": "모니터 보다가 목이 굳었어 풀어주는 동작 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 775
+  },
+  {
+    "query": "내 앉은 자세가 이상한지 확인 해줘",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 39
+  },
+  {
+    "query": "이 기능 어떻게 해줘",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 1884
+  },
+  {
+    "query": "옆목이 결리는 느낌이라 푸는 운동을 알려 줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 2700
+  },
+  {
+    "query": "허리 근육이 뻐근한데 풀 동작 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 1059
+  },
+  {
+    "query": "목 위치 확인 말고 뻐근한 목을 풀어줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 2076
+  },
+  {
+    "query": "공부 시작해줘",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 314
+  },
+  {
+    "query": "목이 몸통보다 앞쪽으로 빠져 있는지 확인해 줄래",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 2687
+  },
+  {
+    "query": "10분 후에 휴식 알림 설정해줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1537
+  },
+  {
+    "query": "세션은 끝내지 말고 잠깐 멈춰줘",
+    "expected_command": "<monitor>(command=\"pause\")<suda_end>",
+    "train_line": 441
+  },
+  {
+    "query": "현재 휴식이 필요한지 확인해주세요",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 1513
+  },
+  {
+    "query": "오분 뒤에 휴식 알림 해줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1714
+  },
+  {
+    "query": "몸이 결려요",
+    "expected_command": "<clarify>(command=\"body_part\")<suda_end>",
+    "train_line": 1166
+  },
+  {
+    "query": "어깨가 뻐근해서 스트레칭 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+    "train_line": 976
+  },
+  {
+    "query": "착석 시간을 말하고 십 분 뒤 알림도 설정해줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2024
+  },
+  {
+    "query": "오늘 공부 세션을 완전히 종료해줘",
+    "expected_command": "<monitor>(command=\"stop\")<suda_end>",
+    "train_line": 2273
+  },
+  {
+    "query": "허리 확인해줘",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 1920
+  },
+  {
+    "query": "어깨가 결릴 때 하는 스트레칭 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+    "train_line": 951
+  },
+  {
+    "query": "목 자세를 확인한 뒤 목 스트레칭도 알려줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2440
+  },
+  {
+    "query": "목 스트레칭 안내해주세요",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 792
+  },
+  {
+    "query": "착석 시간이 길어서 휴식해야 하는지 확인해줘",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 2369
+  },
+  {
+    "query": "어딘가 결리는데 정확한 위치를 말하기 어려워",
+    "expected_command": "<clarify>(command=\"body_part\")<suda_end>",
+    "train_line": 1210
+  },
+  {
+    "query": "한 시간 십 분 후에 휴식 알림 설정해주세요",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1822
+  },
+  {
+    "query": "계속 어딘가 굳은 느낌이야",
+    "expected_command": "<clarify>(command=\"body_part\")<suda_end>",
+    "train_line": 1152
+  },
+  {
+    "query": "어깨 긴장을 풀 수 있는 스트레칭 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+    "train_line": 924
+  },
+  {
+    "query": "1분 뒤에 휴식 알람 설정해줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1555
+  },
+  {
+    "query": "앉은 자세 분석 잠깐 멈춰줘",
+    "expected_command": "<monitor>(command=\"pause\")<suda_end>",
+    "train_line": 446
+  },
+  {
+    "query": "자세 모니터링 완전히 꺼줘",
+    "expected_command": "<monitor>(command=\"stop\")<suda_end>",
+    "train_line": 582
+  },
+  {
+    "query": "팔꿈치 스트레칭 추천해줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2033
+  },
+  {
+    "query": "불편한 곳이 있는데 부위를 잘 모르겠어",
+    "expected_command": "<clarify>(command=\"body_part\")<suda_end>",
+    "train_line": 1188
+  },
+  {
+    "query": "지금 자세가 틀어졌는지 한번 바줘",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 2048
+  },
+  {
+    "query": "자세 측정도 같이 종료해줘",
+    "expected_command": "<monitor>(command=\"stop\")<suda_end>",
+    "train_line": 593
+  },
+  {
+    "query": "자세 모니터링 종료해주세요",
+    "expected_command": "<monitor>(command=\"stop\")<suda_end>",
+    "train_line": 583
+  },
+  {
+    "query": "이십오 분쯤 지나면 쉬는 알림 부탁해",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 2602
+  },
+  {
+    "query": "두 시간 뒤에 잠깐 쉬라고 말해줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1656
+  },
+  {
+    "query": "어딘가 뻐근한데 어디부터 풀어야 할지 모르겠어",
+    "expected_command": "<clarify>(command=\"body_part\")<suda_end>",
+    "train_line": 1216
+  },
+  {
+    "query": "지금까지 얼마나 지났어?",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 1349
+  },
+  {
+    "query": "목을 어떻게 좀 해줘",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 2161
+  },
+  {
+    "query": "지금 내 자세가 흐트러졌는지 확인 해줘",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 116
+  },
+  {
+    "query": "현재 목 위치가 괜찮은지 확인 해줘",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 292
+  },
+  {
+    "query": "십분 지나면 휴식 알려줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1701
+  },
+  {
+    "query": "현재 상태라면 쉬어야 하는지 확인해줘",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 1487
+  },
+  {
+    "query": "허리가 뻣뻣한데 스트레칭 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 1138
+  },
+  {
+    "query": "굳은 목을 풀어주는 운동 안내해주세요",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 747
+  },
+  {
+    "query": "내 머리 위치가 괜찮은지 확인 해주세요",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 195
+  },
+  {
+    "query": "지금 휴식할 타이밍인지 알려줘",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 2143
+  },
+  {
+    "query": "허리 스트레칭 추천해줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 1074
+  },
+  {
+    "query": "목 스트레칭 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 794
+  },
+  {
+    "query": "지금 모니터링을 시작한 뒤 얼마나 앉아 있었어",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 1326
+  },
+  {
+    "query": "이따가 쉬라고 알려줘",
+    "expected_command": "<clarify>(command=\"time\")<suda_end>",
+    "train_line": 1944
+  },
+  {
+    "query": "공부 중 할 스트레칭 추천해주세요",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"0\")<suda_end>",
+    "train_line": 662
+  },
+  {
+    "query": "현재 머리 위치가 어깨보다 앞에 있는지 확인 해주세요",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 286
+  },
+  {
+    "query": "일시정지한 자세 측정을 다시 시작해줘",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 349
+  },
+  {
+    "query": "몸을 풀 시간이 됐는지 확인해줘",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 1397
+  },
+  {
+    "query": "공부 시작하니까 자세 측정도 켜줘",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 2122
+  },
+  {
+    "query": "책상 자세 측정 종료해주세요",
+    "expected_command": "<monitor>(command=\"stop\")<suda_end>",
+    "train_line": 622
+  },
+  {
+    "query": "공부하다 몸이 뻣뻣해졌는데 위치가 애매해",
+    "expected_command": "<clarify>(command=\"body_part\")<suda_end>",
+    "train_line": 1156
+  },
+  {
+    "query": "뒷목이 당겨져서 목이 불편해요 어떻게 풀어줄 수 있나요?",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 769
+  },
+  {
+    "query": "내 자세를 봤을 때 이상한 부분이 없는지 한번 봐줘",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 66
+  },
+  {
+    "query": "오른쪽 어깨가 결려서 어깨 운동이 필요해",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+    "train_line": 989
+  },
+  {
+    "query": "고개 주변 긴장을 풀어주는 목 운동 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 735
+  },
+  {
+    "query": "어디가 불편한지 모르겠지만 좀 결려",
+    "expected_command": "<clarify>(command=\"body_part\")<suda_end>",
+    "train_line": 1201
+  },
+  {
+    "query": "지금 내 자세에 틀어진 데가 있는지 봐줘",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 2215
+  },
+  {
+    "query": "너무 오래 앉아 있었는지 확인해줘",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 1388
+  },
+  {
+    "query": "내 착석 시간이 현재 얼마나 쌓였어",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 2107
+  },
+  {
+    "query": "현재 머리 위치가 너무 앞으로 빠졌는지 확인 해줘",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 282
+  },
+  {
+    "query": "지금부터 1시간 10분 뒤에 휴식 알림 줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1746
+  },
+  {
+    "query": "책상 앞에서 목 긴장을 풀 수 있는 방법 있어?",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 883
+  },
+  {
+    "query": "전신 스트레칭 가르쳐줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"0\")<suda_end>",
+    "train_line": 703
+  },
+  {
+    "query": "지금 앉은 자세 한 번 확인 부탁해",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 2050
+  },
+  {
+    "query": "공부 시작하고 얼마나 앉아 있었어",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 1250
+  },
+  {
+    "query": "현재 상태에서 쉬는 게 좋은지 알려주세요",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 1490
+  },
+  {
+    "query": "오늘 자세 기록을 저장하고 모니터링을 끝내줘",
+    "expected_command": "<monitor>(command=\"stop\")<suda_end>",
+    "train_line": 565
+  },
+  {
+    "query": "자세 결과 화면으로 바로 이동해줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2170
+  },
+  {
+    "query": "잠깐 멈춘 공부를 다시 이어갈 건데 어떤 기능을 켤지 모르겠어",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 2405
+  },
+  {
+    "query": "고개가 앞으로 쏠린 건지 확인 좀",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 2487
+  },
+  {
+    "query": "한 시간 이십 분 지나면 휴식하라고 말해주세요",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1833
+  },
+  {
+    "query": "내가 지금 똑바로 앉아 있는지 확인해줄래?",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 72
+  },
+  {
+    "query": "전체적인 자세가 문제 없나요?",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 95
+  },
+  {
+    "query": "현재 측정을 시작한 뒤 누적된 착석 시간을 확인해줄래",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 2642
+  },
+  {
+    "query": "얼마나 앉았는지를 보고 지금 쉬는 게 좋을지 알려줘",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 2553
+  },
+  {
+    "query": "잠시 멈춰줘",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 1903
+  },
+  {
+    "query": "오늘 오후 두 시에 휴식 알림 해줘",
+    "expected_command": "<clarify>(command=\"time\")<suda_end>",
+    "train_line": 2371
+  },
+  {
+    "query": "귀와 어깨의 상대 위치가 앞쪽으로 이동했는지 확인 해주세요",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 185
+  },
+  {
+    "query": "지금 쉬는 편이 좋은 때인지 판단해 줄래",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 2680
+  },
+  {
+    "query": "앉은 자세 분석 시작해줘",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 335
+  },
+  {
+    "query": "잠시 후에 쉬라고 알려줘",
+    "expected_command": "<clarify>(command=\"time\")<suda_end>",
+    "train_line": 1949
+  },
+  {
+    "query": "간단한 스트레칭 가르쳐주세요",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"0\")<suda_end>",
+    "train_line": 639
+  },
+  {
+    "query": "두 시간 후에 쉬라고 알려줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1666
+  },
+  {
+    "query": "측정을 멈추고 허리 스트레칭을 추천해줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2027
+  },
+  {
+    "query": "전체 자세가 괜찮은지 확인 해줘",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 81
+  },
+  {
+    "query": "전신 운동 자세를 코칭해줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2018
+  },
+  {
+    "query": "지금 머리 위치가 기준보다 앞쪽인지 알려줘",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 2060
+  },
+  {
+    "query": "휴식 알림을 설정한 다음 자세 측정을 시작해줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2041
+  },
+  {
+    "query": "한 시간 십오 분 후에 쉬는 알람을 설정해주세요",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1827
+  },
+  {
+    "query": "이번 세션 착석 시간이 얼마나 돼",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 1310
+  },
+  {
+    "query": "전신 스트레칭 보여주세요",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"0\")<suda_end>",
+    "train_line": 704
+  },
+  {
+    "query": "내가 지금 쉬어야 하는 상태인지 확인해줘",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 1379
+  },
+  {
+    "query": "귀와 어깨의 상대 위치가 바른 위치에 있는지 확인 해줘",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 184
+  },
+  {
+    "query": "손목 스트레칭 알려줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 1996
+  },
+  {
+    "query": "좀 뒤에 쉬라고 알려줘",
+    "expected_command": "<clarify>(command=\"time\")<suda_end>",
+    "train_line": 1964
+  },
+  {
+    "query": "일시정지 말고 측정을 종료해줘",
+    "expected_command": "<monitor>(command=\"stop\")<suda_end>",
+    "train_line": 2280
+  },
+  {
+    "query": "내일 아침에 깨워줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2199
+  },
+  {
+    "query": "아직 더 해도 되는지 아니면 쉬어야 하는지 알려줘",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 2137
+  },
+  {
+    "query": "어깨가 뭉친다고 느껴져서 방법 좀 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+    "train_line": 960
+  },
+  {
+    "query": "시작한 다음부터 지금까지 앉은 시간 계산해줘",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 2106
+  },
+  {
+    "query": "지금부터 자세 측정을 계속 돌려줘",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 2115
+  },
+  {
+    "query": "적당한 때에 잠깐 쉬라고 말해줘",
+    "expected_command": "<clarify>(command=\"time\")<suda_end>",
+    "train_line": 1955
+  },
+  {
+    "query": "전신 스트레칭 알려주세요",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"0\")<suda_end>",
+    "train_line": 707
+  },
+  {
+    "query": "어디가 문제인지 모르겠는데 결려",
+    "expected_command": "<clarify>(command=\"body_part\")<suda_end>",
+    "train_line": 2346
+  },
+  {
+    "query": "측정 상태는 유지하고 잠깐 쉬게 해줘",
+    "expected_command": "<monitor>(command=\"pause\")<suda_end>",
+    "train_line": 2254
+  },
+  {
+    "query": "뒷목이 당겨서 가볍게 스트레칭하고 싶어",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 768
+  },
+  {
+    "query": "목 주변이 뻐근한데 스트레칭 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 2305
+  },
+  {
+    "query": "자세를 확인하고 어깨 스트레칭도 추천해줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2439
+  },
+  {
+    "query": "어깨 근육이 좀 뻐근하네",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+    "train_line": 2583
+  },
+  {
+    "query": "지금 내 몸 전체 자세가 어때요?",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 97
+  },
+  {
+    "query": "귀와 어깨의 상대 위치가 괜찮은지 확인 해주세요",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 177
+  },
+  {
+    "query": "180분 후에 휴식 알림 설정해줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1554
+  },
+  {
+    "query": "몸 전체를 움직일 수 있는 스트레칭 추천해줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"0\")<suda_end>",
+    "train_line": 665
+  },
+  {
+    "query": "자세 모니터링 기능만 잠시 멈춰줘",
+    "expected_command": "<monitor>(command=\"pause\")<suda_end>",
+    "train_line": 454
+  },
+  {
+    "query": "몸 한 군데가 결리는 것 같은데 잘 모르겠어",
+    "expected_command": "<clarify>(command=\"body_part\")<suda_end>",
+    "train_line": 1161
+  },
+  {
+    "query": "공부를 이어가기 전에 쉬어야 할 때인지 판단해줘",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 2736
+  },
+  {
+    "query": "지금 상태 어떻게 해줘",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 1910
+  },
+  {
+    "query": "전체 스트레칭 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"0\")<suda_end>",
+    "train_line": 724
+  },
+  {
+    "query": "전신 스트레칭 안내해줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"0\")<suda_end>",
+    "train_line": 706
+  },
+  {
+    "query": "자세 측정 기능만 잠깐 멈춰줘",
+    "expected_command": "<monitor>(command=\"pause\")<suda_end>",
+    "train_line": 462
+  },
+  {
+    "query": "십오 분 뒤에 휴식 시간을 알려주실래요?",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1702
+  },
+  {
+    "query": "내가 지금 휴식이 필요한 상태인지 알려줘",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 2129
+  },
+  {
+    "query": "내 머리 위치가 바른 위치에 있는지 확인 해주세요",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 199
+  },
+  {
+    "query": "지금 앉아 있는 자세 전체를 점검해줘",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 126
+  },
+  {
+    "query": "어제 자세 점수를 알려줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2001
+  },
+  {
+    "query": "지금 휴식이 권장되는지 판단해주세요",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 1468
+  },
+  {
+    "query": "몸이 불편한 느낌이야",
+    "expected_command": "<clarify>(command=\"body_part\")<suda_end>",
+    "train_line": 1170
+  },
+  {
+    "query": "오래 앉은 뒤 할 스트레칭 알려주세요",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"0\")<suda_end>",
+    "train_line": 696
+  },
+  {
+    "query": "다시 자세 봐줘",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 321
+  },
+  {
+    "query": "목이 뻐근해서 풀어 주는 동작 좀 갈쳐줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 2648
+  },
+  {
+    "query": "발 자세를 확인해줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2426
+  },
+  {
+    "query": "방금 멈춘 자세 측정을 다시 이어서 해줘",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 327
+  },
+  {
+    "query": "앉아서 허리를 풀 방법 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 1025
+  },
+  {
+    "query": "책상 자세 측정 완전히 꺼줘",
+    "expected_command": "<monitor>(command=\"stop\")<suda_end>",
+    "train_line": 621
+  },
+  {
+    "query": "목이 결려서 풀 수 있는 운동을 하나 알려줄래",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 2645
+  },
+  {
+    "query": "그거 어떻게 해줘",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 1851
+  },
+  {
+    "query": "목을 풀고 싶어",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 827
+  },
+  {
+    "query": "굳은 허리를 푸는 동작 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 1012
+  },
+  {
+    "query": "집중 모드를 완전히 종료해줘",
+    "expected_command": "<monitor>(command=\"stop\")<suda_end>",
+    "train_line": 2284
+  },
+  {
+    "query": "목 스트레칭을 알려주고 모니터링도 켜줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2191
+  },
+  {
+    "query": "내 머리 위치가 평소 기준과 비슷한지 확인 해주세요",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 206
+  },
+  {
+    "query": "현재까지 몇 분 동안 앉아 있었어",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 1369
+  },
+  {
+    "query": "스무 분 뒤에 알림을 해줘",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 2541
+  },
+  {
+    "query": "내일 아침에 휴식 알림 줘",
+    "expected_command": "<clarify>(command=\"time\")<suda_end>",
+    "train_line": 1976
+  },
+  {
+    "query": "공부 모드 켜줘",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 311
+  },
+  {
+    "query": "자세 측정을 얼마나 했는지 조회해주세요",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 1320
+  },
+  {
+    "query": "공부하는 동안 자세 모니터링을 시작해줘",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 317
+  },
+  {
+    "query": "자세 모니터링을 끝내고 세션을 닫아줘",
+    "expected_command": "<monitor>(command=\"stop\")<suda_end>",
+    "train_line": 584
+  },
+  {
+    "query": "1시간 20분 뒤에 휴식 알려줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1563
+  },
+  {
+    "query": "내 몸 자세가 전체적으로 괜찮은지 봐줄래",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 2044
+  },
+  {
+    "query": "자세 감시 기능을 종료 상태로 바꿔줘",
+    "expected_command": "<monitor>(command=\"stop\")<suda_end>",
+    "train_line": 577
+  },
+  {
+    "query": "두 시간 삼십분 뒤에 휴식 알려줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1660
+  },
+  {
+    "query": "내 자세 좀 봐줘",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 46
+  },
+  {
+    "query": "뒷목 말고 옆목이 당기는데 운동 추천해줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 2306
+  },
+  {
+    "query": "어딘가 불편한데 어느 부위 스트레칭이 필요한지 모르겠어",
+    "expected_command": "<clarify>(command=\"body_part\")<suda_end>",
+    "train_line": 1215
+  },
+  {
+    "query": "오늘 작업 끝날 때까지 자세 감시를 켜줘",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 2112
+  },
+  {
+    "query": "나의 전체 자세가 바르게 되어 있는지 확인해줘",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 6
+  },
+  {
+    "query": "책상 자세 측정 잠깐 멈춰줘",
+    "expected_command": "<monitor>(command=\"pause\")<suda_end>",
+    "train_line": 511
+  },
+  {
+    "query": "온몸 스트레칭 순서를 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"0\")<suda_end>",
+    "train_line": 699
+  },
+  {
+    "query": "10분 지나면 잠깐 쉬게 알려줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1535
+  },
+  {
+    "query": "여든한 분 뒤 자리에서 일어나 쉬라고 알림 좀 보내줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 2768
+  },
+  {
+    "query": "오늘 자세 측정 세션을 완전히 종료해줘",
+    "expected_command": "<monitor>(command=\"stop\")<suda_end>",
+    "train_line": 566
+  },
+  {
+    "query": "지금 자세 관련 도움을 요청하고 싶은데 기능을 모르겠어",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 2400
+  },
+  {
+    "query": "잠깐 자리 비울게 모니터링 일시정지해줘",
+    "expected_command": "<monitor>(command=\"pause\")<suda_end>",
+    "train_line": 482
+  },
+  {
+    "query": "종료하지 않고 일시정지 상태로 해줘",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 2271
+  },
+  {
+    "query": "이번 세션에서 의자에 앉아 있던 시간만 말해줄래",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 2639
+  },
+  {
+    "query": "앉은지 얼마나 댓는지 알려줘",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 2109
+  },
+  {
+    "query": "오후 세 시에 회의 알림 해줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2464
+  },
+  {
+    "query": "분석은 잠깐 쉬었다가 다시 해줘",
+    "expected_command": "<monitor>(command=\"pause\")<suda_end>",
+    "train_line": 2634
+  },
+  {
+    "query": "집중 모드의 자세 측정만 잠시 멈춰줘",
+    "expected_command": "<monitor>(command=\"pause\")<suda_end>",
+    "train_line": 501
+  },
+  {
+    "query": "집중 모드 자세 측정을 잠시 보류해줄래",
+    "expected_command": "<monitor>(command=\"pause\")<suda_end>",
+    "train_line": 2591
+  },
+  {
+    "query": "팔이 뻐근한데 팔 운동 알려줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2431
+  },
+  {
+    "query": "전체 스트레칭 추천해주세요",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"0\")<suda_end>",
+    "train_line": 725
+  },
+  {
+    "query": "책상 자세 측정 시작해줘",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 399
+  },
+  {
+    "query": "잠깐 일어나야 할 때인지 확인해줘",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 1423
+  },
+  {
+    "query": "어깨 주변을 푸는 방법 추천해줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+    "train_line": 942
+  },
+  {
+    "query": "자세 코칭 켜주세요",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 370
+  },
+  {
+    "query": "지금 이 자세가 맞나 확인 좀",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 2479
+  },
+  {
+    "query": "계속 보지 말고 현재 자세를 한번 확인해줘",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 1
+  },
+  {
+    "query": "양쪽 어깨가 무거운데 동작 추천해줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+    "train_line": 918
+  },
+  {
+    "query": "내일 아침 여섯 시에 알림 좀 부탁해",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 2771
+  },
+  {
+    "query": "손목이 바른 각도인지 봐줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2411
+  },
+  {
+    "query": "다시 이어가지 않을 거니까 측정을 종료해줘",
+    "expected_command": "<monitor>(command=\"stop\")<suda_end>",
+    "train_line": 544
+  },
+  {
+    "query": "20분 있다가 휴식하라고 알려줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1586
+  },
+  {
+    "query": "지금 쉬는 게 나은지 계속하는 게 나은지 판단해줘",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 1441
+  },
+  {
+    "query": "목 문제 좀 해결해줘 뭘 할지는 모르겠어",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 2167
+  },
+  {
+    "query": "오십오 분 후에는 잠시 쉬라고 알림을 맞춰줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 2613
+  },
+  {
+    "query": "무릎 자세를 교정해줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2409
+  },
+  {
+    "query": "지금 진행 중인 공부의 착석 시간이 몇 분인지 궁금하네",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 2640
+  },
+  {
+    "query": "등 아래와 허리가 결려서 허리 스트레칭이 필요해",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 1016
+  },
+  {
+    "query": "허리 아래쪽이 당기는데 가볍게 푸는 법 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 1078
+  },
+  {
+    "query": "오늘 작업 시작하고 현재까지 앉은 시간이 얼마야",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 2090
+  },
+  {
+    "query": "지금 휴식을 취해야 하는지 확인해주세요",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 1462
+  },
+  {
+    "query": "오후 세 시에 쉬라고 알려줘",
+    "expected_command": "<clarify>(command=\"time\")<suda_end>",
+    "train_line": 2006
+  },
+  {
+    "query": "앉아서 허리 긴장을 줄이는 스트레칭 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 1023
+  },
+  {
+    "query": "이제 잠깐 쉬어야 할까",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 2352
+  },
+  {
+    "query": "현재 착석 시간이 얼마인지 조회해주세요",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 1362
+  },
+  {
+    "query": "오늘 저녁 여섯 시에 쉬라고 말해줘",
+    "expected_command": "<clarify>(command=\"time\")<suda_end>",
+    "train_line": 2374
+  },
+  {
+    "query": "간단한 스트레칭 알려주세요",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"0\")<suda_end>",
+    "train_line": 644
+  },
+  {
+    "query": "오래 앉은 뒤 어깨를 푸는 동작 가르쳐주세요",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+    "train_line": 980
+  },
+  {
+    "query": "모니터링을 시작하고 목 스트레칭도 알려줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 1982
+  },
+  {
+    "query": "이 기능을 어떻게 해야 해",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 1888
+  },
+  {
+    "query": "자세 측정을 잠깐 멈췄다가 이어갈게",
+    "expected_command": "<monitor>(command=\"pause\")<suda_end>",
+    "train_line": 469
+  },
+  {
+    "query": "자세 코칭 시작해줘",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 368
+  },
+  {
+    "query": "잠깐 중단한 자세 분석을 이어서 진행해줘",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 377
+  },
+  {
+    "query": "지금 앉은 자세에 이상한 부분이 있는지 봐줘",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 134
+  },
+  {
+    "query": "앉은 지 얼마나 됐는지는 말고 쉬어야 하는지 봐줘",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 2142
+  },
+  {
+    "query": "지금 상태 이상한 것 같아",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 1911
+  },
+  {
+    "query": "다음 달 둘째 날에 잠시 쉬라고 알림을 맞춰줘",
+    "expected_command": "<clarify>(command=\"time\")<suda_end>",
+    "train_line": 2614
+  },
+  {
+    "query": "앉은 시간도 알려주고 쉬어야 하는지도 판단해줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2437
+  },
+  {
+    "query": "내 자세가 전반적으로 안정적인지 봐줄래?",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 58
+  },
+  {
+    "query": "스쿼트 자세가 맞는지 봐줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2185
+  },
+  {
+    "query": "목 주변을 가볍게 푸는 방법 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 2079
+  },
+  {
+    "query": "휴식 알림 말고 모니터링을 잠시 멈춰줘",
+    "expected_command": "<monitor>(command=\"pause\")<suda_end>",
+    "train_line": 2267
+  },
+  {
+    "query": "이번 주 토요일 오전에 자리에서 일어나 쉬라고 알려줄래",
+    "expected_command": "<clarify>(command=\"time\")<suda_end>",
+    "train_line": 2609
+  },
+  {
+    "query": "자세 측정 잠시 멈춰주세요",
+    "expected_command": "<monitor>(command=\"pause\")<suda_end>",
+    "train_line": 468
+  },
+  {
+    "query": "모니터링을 시작한 지 얼마나 됐는지 확인해줘",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 1272
+  },
+  {
+    "query": "현재 자세를 보고 어깨 운동도 알려줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2038
+  },
+  {
+    "query": "앉아서 하는 스트레칭 추천해줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"0\")<suda_end>",
+    "train_line": 691
+  },
+  {
+    "query": "내 상체 자세가 기준 자세와 비슷한지 확인 해주세요",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 11
+  },
+  {
+    "query": "조금 있다가 휴식할 때 알림 줘",
+    "expected_command": "<clarify>(command=\"time\")<suda_end>",
+    "train_line": 1962
+  },
+  {
+    "query": "손 목은 확인하지 말고 내 목의 위치만 확인해 줘",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 2710
+  }
+]

@@ -1,0 +1,153 @@
+{
+  "source_file": "train_v11.jsonl",
+  "source_sha256": "46eedbf901645e00568afbcd07f4c9a1d072d015c5fd54e5377c83f79e32609d",
+  "source_records": 2776,
+  "system_prompt_chars": 979,
+  "system_prompt_sha256": "0dca87f844ea82dc754491ffcd662840952fd33a2699f074a94bcee3692bb57d",
+  "full_queries": 500,
+  "smoke_queries": 16,
+  "command_kinds": 16,
+  "selection": "20 per command + 180 proportional; character TF-IDF centrality/novelty; minute anchors; deterministic shuffle",
+  "excluded_sources": [
+    {
+      "file": "validation_v11.jsonl",
+      "records": 302,
+      "sha256": "401538a587dc059ba0a2cc098bf47e9ea574ec7069b15e49cc03cd934aaf2732"
+    },
+    {
+      "file": "eval_v11.jsonl",
+      "records": 420,
+      "sha256": "51554a8a3d16deb58534d9519cb2623f2c791c090d9576d9ac32a01bf2d3732c"
+    },
+    {
+      "file": "boundary_eval_v11.jsonl",
+      "records": 120,
+      "sha256": "9529351b143e6a59377d8436454c3ddf7efc6c1146cf1f9297cb9b3737be3c51"
+    },
+    {
+      "file": "supplement_eval_v11.jsonl",
+      "records": 24,
+      "sha256": "fd76dea605a1175ecb4f3b73fbbc163f5a1a4915ae7a0d434fe5f66ad3a5985c"
+    }
+  ],
+  "excluded_voice_inputs": [
+    "지금 내 전체 자세를 확인해줘.",
+    "목이 앞으로 나왔는지 확인해줘.",
+    "자세 모니터링 시작해줘.",
+    "자세 측정을 잠깐 일시정지해줘.",
+    "오늘 자세 측정을 완전히 종료해줘.",
+    "전신 스트레칭을 추천해줘.",
+    "목이 아픈데 스트레칭 좀 추천해줘.",
+    "어깨가 뻐근한데 어깨 스트레칭 알려줘.",
+    "허리를 풀어주는 스트레칭 추천해줘.",
+    "몸이 좀 뻐근해.",
+    "목 쪽으로 뭔가 해줘.",
+    "휴식 알림 설정해줘.",
+    "내가 앉아 있던 시간을 알려줘.",
+    "지금 쉬어야 할까?",
+    "14분 뒤에 휴식 알림 설정해줘.",
+    "내일 아침 8시에 깨워줘."
+  ],
+  "excluded_train_records": 0,
+  "exact_and_space_punctuation_normalized_overlap_with_known_holdouts": 0,
+  "distribution": [
+    {
+      "command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+      "eligible_train": 232,
+      "selected": 35
+    },
+    {
+      "command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+      "eligible_train": 179,
+      "selected": 32
+    },
+    {
+      "command": "<monitor>(command=\"start\")<suda_end>",
+      "eligible_train": 156,
+      "selected": 30
+    },
+    {
+      "command": "<clarify>(command=\"intent\")<suda_end>",
+      "eligible_train": 158,
+      "selected": 30
+    },
+    {
+      "command": "<monitor>(command=\"pause\")<suda_end>",
+      "eligible_train": 140,
+      "selected": 29
+    },
+    {
+      "command": "<monitor>(command=\"stop\")<suda_end>",
+      "eligible_train": 139,
+      "selected": 29
+    },
+    {
+      "command": "<stretch>(command=\"recommend\", part=\"0\")<suda_end>",
+      "eligible_train": 106,
+      "selected": 27
+    },
+    {
+      "command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+      "eligible_train": 202,
+      "selected": 33
+    },
+    {
+      "command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+      "eligible_train": 138,
+      "selected": 29
+    },
+    {
+      "command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+      "eligible_train": 156,
+      "selected": 30
+    },
+    {
+      "command": "<clarify>(command=\"body_part\")<suda_end>",
+      "eligible_train": 138,
+      "selected": 29
+    },
+    {
+      "command": "<sitting>(command=\"time\")<suda_end>",
+      "eligible_train": 151,
+      "selected": 30
+    },
+    {
+      "command": "<break>(command=\"check\")<suda_end>",
+      "eligible_train": 216,
+      "selected": 34
+    },
+    {
+      "command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+      "eligible_train": 340,
+      "selected": 42
+    },
+    {
+      "command": "<clarify>(command=\"time\")<suda_end>",
+      "eligible_train": 120,
+      "selected": 28
+    },
+    {
+      "command": "<unsupported>(command=\"reject\")<suda_end>",
+      "eligible_train": 205,
+      "selected": 33
+    }
+  ],
+  "runtime_not_executed": [
+    "model_weight_load",
+    "model_generate",
+    "calibration",
+    "rkllm_build",
+    "board_inference"
+  ],
+  "provided_calib_py_generation": {
+    "do_sample": false,
+    "repetition_penalty": 1.1,
+    "max_new_tokens": 64
+  },
+  "limits": [
+    "Header checks are not full source/destination SHA256 equality checks.",
+    "No real model inference has been run in this workspace.",
+    "The known held-out JSONLs are the locally retained V11 candidate splits; changed/new external tests are not certified.",
+    "Calibration is not extra training, and is not a held-out accuracy evaluation."
+  ]
+}

@@ -1,0 +1,82 @@
+[
+  {
+    "query": "나 앉은 모양 괜찮니",
+    "expected_command": "<posture>(command=\"check\", type=\"0\")<suda_end>",
+    "train_line": 2470
+  },
+  {
+    "query": "머리 위치 어때요?",
+    "expected_command": "<posture>(command=\"check\", type=\"1\")<suda_end>",
+    "train_line": 227
+  },
+  {
+    "query": "공부 모드 켜줘",
+    "expected_command": "<monitor>(command=\"start\")<suda_end>",
+    "train_line": 311
+  },
+  {
+    "query": "공부 잠깐 멈춰줘",
+    "expected_command": "<monitor>(command=\"pause\")<suda_end>",
+    "train_line": 428
+  },
+  {
+    "query": "공부 종료해줘",
+    "expected_command": "<monitor>(command=\"stop\")<suda_end>",
+    "train_line": 541
+  },
+  {
+    "query": "전체 스트레칭 알려줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"0\")<suda_end>",
+    "train_line": 724
+  },
+  {
+    "query": "목을 풀고 싶어",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"1\")<suda_end>",
+    "train_line": 827
+  },
+  {
+    "query": "어깨 스트레칭 가르쳐줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"2\")<suda_end>",
+    "train_line": 926
+  },
+  {
+    "query": "허리가 뻐근해 풀어줘",
+    "expected_command": "<stretch>(command=\"recommend\", part=\"3\")<suda_end>",
+    "train_line": 1129
+  },
+  {
+    "query": "몸이 결려요",
+    "expected_command": "<clarify>(command=\"body_part\")<suda_end>",
+    "train_line": 1166
+  },
+  {
+    "query": "목 도와줘",
+    "expected_command": "<clarify>(command=\"intent\")<suda_end>",
+    "train_line": 1861
+  },
+  {
+    "query": "나중에 쉬라고 알려줘",
+    "expected_command": "<clarify>(command=\"time\")<suda_end>",
+    "train_line": 1927
+  },
+  {
+    "query": "공부 시작하고 얼마나 앉아 있었어",
+    "expected_command": "<sitting>(command=\"time\")<suda_end>",
+    "train_line": 1250
+  },
+  {
+    "query": "휴식할 시점인지 말해줘",
+    "expected_command": "<break>(command=\"check\")<suda_end>",
+    "train_line": 1527
+  },
+  {
+    "query": "30분 뒤에 쉬라고 해줘",
+    "expected_command": "<break>(command=\"set_alarm\", minutes=\"N\")<suda_end>",
+    "train_line": 1602
+  },
+  {
+    "query": "내일 아침에 깨워줘",
+    "expected_command": "<unsupported>(command=\"reject\")<suda_end>",
+    "train_line": 2199
+  }
+]
